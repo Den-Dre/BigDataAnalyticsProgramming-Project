@@ -12,7 +12,12 @@ public class VfdtNode {
 
   private int splitFeature; /* splitting feature */
 
-  private int[][][] nijk; /* instance counts (see paper) */
+  private int[][][] nijk; /* instance counts (see papert ) */
+
+  // NOT SURE IF THIS IS SUPPOSED TO BE ADDED IN THIS WAY
+  // I'VE ADDED THIS S.T. THE EXISTING CODE DIDN'T GIVE ANY MORE ERRORS
+  // AS IT DIDN'T RECOGNISE THE FOLLOWING VARIABLE
+  private int nbSplits;
 
   /* FILL IN HERE */
 
@@ -33,7 +38,7 @@ public class VfdtNode {
 
 
   /**
-   * Turn a leaf node into a internal node.
+   * Turn a leaf node into an internal node.
    *
    * <p>THIS METHOD IS REQUIRED.
    *
@@ -57,7 +62,7 @@ public class VfdtNode {
    */
   public VfdtNode sortExample(Integer[] example) {
 
-    VfdtNode leaf; // change this
+    VfdtNode leaf = null; // change this
 
     /* FILL IN HERE */
 

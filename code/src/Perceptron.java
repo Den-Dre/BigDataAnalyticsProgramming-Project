@@ -3,11 +3,12 @@
  * without permission. Written by Pieter Robberechts, 2021
  */
 import java.io.*;
+import java.util.Scanner;
 
 /** This class is a stub for incrementally building a Perceptron model. */
 public class Perceptron extends IncrementalLearner<Double> {
 
-  private double learningRate;
+  private final double learningRate;
   private double[] weights;
 
 
@@ -27,7 +28,11 @@ public class Perceptron extends IncrementalLearner<Double> {
       FILL IN HERE
       You will need other data structures, initialize them here
     */
+    // Weights are initialized to all zeros
 
+    // TODO add bias
+    // TODO Input van -1 en 1 fixen
+    // TODO Use block based loop to increase efficiency?
   }
 
   /**
@@ -44,7 +49,43 @@ public class Perceptron extends IncrementalLearner<Double> {
       FILL IN HERE
       Update the parameters given the new data to improve J(weights)
     */
+    double y_jt = activationFunction(example);
+    updateWeights(y_jt, example);
+  }
 
+
+  /**
+   * A linear activation function : f(x) = x
+   * @param example: The instance to pass in the activation function
+   * @return f(weights . example), where f is the activation function
+   */
+  private double activationFunction(Example<Double> example) {
+    return weightsDotProduct(example);
+  }
+
+  /**
+   * Calculate the dot product of {@code this.weights} and
+   * the given {@code example}'s {@code attributeValue}s.
+   * @param example: The example that contains the {@code attributeValue}s.
+   * @return the dot product of {@code this.weights} and
+   *         the given {@code example}'s {@code attributeValue}s.
+   */
+  private double weightsDotProduct(Example<Double> example) {
+    double sum = 0.0;
+    for (int i = 0; i < example.attributeValues.length; i++) {
+      sum += example.attributeValues[i] * weights[i];
+    }
+    return sum;
+  }
+
+  /**
+   * Update the weights of this Perceptron using
+   * the delta rule
+   */
+  private void updateWeights(double outputValue, Example<Double> example) {
+    for (int i = 0; i < weights.length; i++) {
+      weights[i] += learningRate * (example.classValue - outputValue) * example.attributeValues[i];
+    }
   }
 
   /**
@@ -52,7 +93,7 @@ public class Perceptron extends IncrementalLearner<Double> {
    * "1";
    *
    * <p>This method gives the output of the perceptron, before it is passed through the threshold
-   * function.
+   * function, i.e.: the exactly calculated predicted probability.
    *
    * <p>THIS METHOD IS REQUIRED
    *
@@ -61,11 +102,12 @@ public class Perceptron extends IncrementalLearner<Double> {
    */
   @Override
   public double makePrediction(Double[] example) {
-    double pr = 0;
+    double pr = 0.0 ;
     /* FILL IN HERE */
-
-
-    return pr;
+    for (int i = 1; i < weights.length; i++) {
+      pr += example[i-1] * weights[i];
+    }
+    return weights[0] + pr;
   }
 
   /**
@@ -76,13 +118,21 @@ public class Perceptron extends IncrementalLearner<Double> {
    * <p>THIS METHOD IS REQUIRED
    *
    * @param path the path to the file
-   * @throws IOException
+   * @throws IOException if the file specified by the {@code path}
+   *                     parameter can't be read
    */
   @Override
   public void writeModel(String path) throws IOException {
-
     /* FILL IN HERE */
-
+    StringBuilder outputBuilder = new StringBuilder();
+    for (double weight : weights) {
+      outputBuilder.append(weight).append(" ");
+    }
+    outputBuilder.deleteCharAt(outputBuilder.length()-1); // Delete trailing whitespace
+    BufferedWriter writer = new BufferedWriter(new FileWriter(path, false));
+    writer.write(outputBuilder.toString());
+    writer.flush();
+    writer.close();
   }
 
   /**
@@ -94,14 +144,22 @@ public class Perceptron extends IncrementalLearner<Double> {
    * @param path the path to the model file
    * @param nbExamplesProcessed the nb of examples that were processed to get to the model in the
    *     file.
-   * @throws IOException
+   * @throws IOException if the file specified by {@code path} parameter can't be read
    */
   @Override
   public void readModel(String path, int nbExamplesProcessed) throws IOException {
     super.readModel(path, nbExamplesProcessed);
 
     /* FILL IN HERE */
+    Scanner scanner = new Scanner(new File(path));
 
+    // Model should only exist of one line
+    String newWeights = scanner.nextLine();
+
+    String[] splitWeights = newWeights.split(" ");
+    for (int i = 0; i < splitWeights.length; i++ ) {
+      weights[i] = Double.parseDouble(splitWeights[i]);
+    }
   }
 
   /**

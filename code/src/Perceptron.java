@@ -23,6 +23,7 @@ public class Perceptron extends IncrementalLearner<Double> {
   public Perceptron(int numFeatures, double learningRate) {
     this.nbExamplesProcessed = 0;
     this.learningRate = learningRate;
+    this.weights = new double[numFeatures+1]; // Take bias term b into account
 
     /*
       FILL IN HERE
@@ -79,12 +80,14 @@ public class Perceptron extends IncrementalLearner<Double> {
   }
 
   /**
-   * Update the weights of this Perceptron using
-   * the delta rule
+   * Update the weights of this Perceptron
+   * using the delta rule
    */
   private void updateWeights(double outputValue, Example<Double> example) {
-    for (int i = 0; i < weights.length; i++) {
-      weights[i] += learningRate * (example.classValue - outputValue) * example.attributeValues[i];
+    for (int i = 1; i < weights.length; i++) {
+      // We implicitly apply Stochastic Gradient Descent as we're only using one example
+      // to update the weights, instead of using all examples in our data set.
+      weights[i] += learningRate * (example.classValue - outputValue) * example.attributeValues[i-1];
     }
   }
 
@@ -151,13 +154,17 @@ public class Perceptron extends IncrementalLearner<Double> {
     super.readModel(path, nbExamplesProcessed);
 
     /* FILL IN HERE */
-    Scanner scanner = new Scanner(new File(path));
+    System.out.println(System.getProperty("user.dir"));
+    Scanner scanner;
+    path = System.getProperty("user.dir") + "/" + path;
+    scanner = new Scanner(new FileReader(path));
 
-    // Model should only exist of one line
+    // Model should only consist of one line
     String newWeights = scanner.nextLine();
 
     String[] splitWeights = newWeights.split(" ");
     for (int i = 0; i < splitWeights.length; i++ ) {
+      nbExamplesProcessed++;
       weights[i] = Double.parseDouble(splitWeights[i]);
     }
   }

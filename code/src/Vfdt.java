@@ -68,7 +68,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
    *
    * <p>THIS METHOD IS REQUIRED
    *
-   * @param example is a the test instance to classify
+   * @param example is a test instance to classify
    * @return the probability that attributeValues belongs to class "1"
    */
   @Override

@@ -2,6 +2,7 @@
  * Copyright (c) DTAI - KU Leuven – All rights reserved. Proprietary, do not copy or distribute
  * without permission. Written by Pieter Robberechts, 2021
  */
+
 import java.io.*;
 import java.util.Scanner;
 
@@ -50,31 +51,34 @@ public class Perceptron extends IncrementalLearner<Double> {
       FILL IN HERE
       Update the parameters given the new data to improve J(weights)
     */
-    double y_jt = activationFunction(example);
+    double y_jt = thresholdFunction(weightsDotProduct(example));
     updateWeights(y_jt, example);
   }
 
 
   /**
-   * A linear activation function : f(x) = x
-   * @param example: The instance to pass in the activation function
-   * @return f(weights . example), where f is the activation function
+   * The Heaviside step function: the threshold function of the
+   * standard perceptron.
+   *
+   * @param input: The instance to pass in the threshold function
+   * @return input > ? 1 : 0
    */
-  private double activationFunction(Example<Double> example) {
-    return weightsDotProduct(example);
+  private double thresholdFunction(double input) {
+    return input > 0.0 ? 1.0 : 0.0;
   }
 
   /**
    * Calculate the dot product of {@code this.weights} and
    * the given {@code example}'s {@code attributeValue}s.
+   *
    * @param example: The example that contains the {@code attributeValue}s.
    * @return the dot product of {@code this.weights} and
    *         the given {@code example}'s {@code attributeValue}s.
    */
   private double weightsDotProduct(Example<Double> example) {
-    double sum = 0.0;
-    for (int i = 0; i < example.attributeValues.length; i++) {
-      sum += example.attributeValues[i] * weights[i];
+    double sum = weights[0];
+    for (int i = 1; i < example.attributeValues.length; i++) {
+      sum += example.attributeValues[i] * weights[i+1];
     }
     return sum;
   }
@@ -84,6 +88,9 @@ public class Perceptron extends IncrementalLearner<Double> {
    * using the delta rule
    */
   private void updateWeights(double outputValue, Example<Double> example) {
+    // NOTE we offset the attributeValues indexes by 1, as attributeValues[0] is assumed to be 1
+    // s.t. weights[0] * attributeValues[0] = weights[0] = b to account for the bias
+    weights[0] += learningRate * (example.classValue - outputValue);
     for (int i = 1; i < weights.length; i++) {
       // We implicitly apply Stochastic Gradient Descent as we're only using one example
       // to update the weights, instead of using all examples in our data set.
@@ -105,12 +112,12 @@ public class Perceptron extends IncrementalLearner<Double> {
    */
   @Override
   public double makePrediction(Double[] example) {
-    double pr = 0.0 ;
+    double pr = weights[0];
     /* FILL IN HERE */
     for (int i = 1; i < weights.length; i++) {
-      pr += example[i-1] * weights[i];
+      pr += weights[i] * example[i-1];
     }
-    return weights[0] + pr;
+    return pr;
   }
 
   /**

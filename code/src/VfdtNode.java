@@ -3,6 +3,8 @@
  * without permission. Written by Pieter Robberechts, 2021
  */
 
+import java.util.Arrays;
+
 /** This class is a stub for VFDT. */
 public class VfdtNode {
 
@@ -19,7 +21,10 @@ public class VfdtNode {
   // AS IT DIDN'T RECOGNISE THE FOLLOWING VARIABLE
   private int nbSplits;
 
+
   /* FILL IN HERE */
+
+  private final int[] nbFeatureValues;
 
   /**
    * Create and initialize a leaf node.
@@ -31,6 +36,7 @@ public class VfdtNode {
    */
   public VfdtNode(int[] nbFeatureValues, int[] possibleSplitFeatures) {
     this.possibleSplitFeatures = possibleSplitFeatures;
+    this.nbFeatureValues = nbFeatureValues;
     children = null;
 
     /* FILL IN HERE */
@@ -92,13 +98,50 @@ public class VfdtNode {
    * @param nijk are the instance counts.
    */
   public static double informationGain(int featureId, int[][][] nijk) {
-    double ig = 0;
+    double ig;
 
     /* FILL IN HERE */
+    double S, Si, zeroes, ones;
+    double[] entropyS;
 
+    entropyS = classEntropy(nijk);
+    ig = entropyS[0]; // Initialise information gain with class entropy
+    S  = entropyS[1];
+
+    for (int v = 0; v < nijk[featureId].length; v++) { // values of features[featureId]
+      zeroes = nijk[featureId][v][0];
+      ones   = nijk[featureId][v][1];
+      Si     = zeroes + ones;
+      ig    -= (Si / S) * classEntropy(nijk[featureId][v], Si);
+    }
     return ig;
   }
 
+  private static double[] classEntropy(int[][][] nijk) {
+    // In our case, y is binary so can only be 1 or 0
+    int nbOnes = 0;   // nb. of instances classified as 1
+    int nbZeroes = 0; // nb. of instances classified as 0
+
+    // TODO can this be done more efficiently?
+    for (int i = 0; i < nijk.length; i++) {       // Over all possible features...
+      for (int j = 0; j < nijk[i].length; j++) {  // ... find all instances classified as one and zero
+        nbOnes += nijk[i][j][1];
+        nbZeroes += nijk[i][j][0];
+      }
+    }
+
+    double S = (double) nbOnes + nbZeroes;
+    double p0 = (double) nbZeroes / S;
+    double p1 = (double) nbOnes / S;
+    return new double[] {- (p0 * Math.log(p0) / Math.log(2) + p1 * Math.log(p1) / Math.log(2)), S};
+  }
+
+  private static double classEntropy(int[] nk, double Si) {
+    // Calculate Class entropy for values of feature i
+    double p0i = (double) nk[0] / Si;
+    double p1i = (double) nk[1] / Si;
+    return - p0i * Math.log(p0i) / Math.log(2) + p1i * Math.log(p1i) / Math.log(2);
+  }
 
   /**
    * Return the visualization of the tree.

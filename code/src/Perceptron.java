@@ -32,8 +32,8 @@ public class Perceptron extends IncrementalLearner<Double> {
     */
     // Weights are initialized to all zeros
 
-    // TODO add bias
-    // TODO Input van -1 en 1 fixen
+    // TODO add bias: done
+    // TODO Input van -1 en 1 fixen: already done?
     // TODO Use block based loop to increase efficiency?
   }
 

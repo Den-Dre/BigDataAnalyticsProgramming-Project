@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Vfdt_small" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="Vfdt" />
+    <module name="assignment1" />
+    <option name="PROGRAM_PARAMETERS" value="0.0000001 0.25 200 ../dataSubset/vfdt/ ../dataSubset/nbFeatureValues.csv small 1000 -writeOutAllPredictions" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/code" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -4,7 +4,6 @@
  */
 import java.io.*;
 import java.util.*;
-import java.util.List;
 
 /** This class is a stub for VFDT. */
 public class Vfdt extends IncrementalLearner<Integer> {
@@ -15,6 +14,9 @@ public class Vfdt extends IncrementalLearner<Integer> {
   private double nmin;
 
   private VfdtNode root;
+
+  /* self-added attributes */
+  private int nbOfNodes;
 
   /**
    * Vfdt constructor
@@ -37,6 +39,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
     int[] possibleFeatures = new int[nbFeatureValues.length];
     for (int i = 0; i < nbFeatureValues.length; i++) possibleFeatures[i] = i;
     root = new VfdtNode(nbFeatureValues, possibleFeatures);
+    this.nbOfNodes = 1;
 
     /*
       FILL IN HERE
@@ -57,10 +60,84 @@ public class Vfdt extends IncrementalLearner<Integer> {
     /*
       FILL IN HERE
     */
+    VfdtNode leaf = root.sortExample(example.attributeValues);
+    for (int i = 0; i < example.attributeValues.length; i++) {
+      // Increment n_ijk(l).
+      // TODO Every feature of the example should also be present in the features of `leaf`, right?
+      leaf.incrementNijk(i, example.attributeValues[i], example.classValue);
+    }
+
+    // Label l with the majority class among the examples
+    // seen so far at l.
+    leaf.incrementAndUpateLabel(example.classValue);
+
+    // If the examples seen so far at l are not all of the same
+    // class, then
+    if (leaf.getNbOnes() == 0 || leaf.getNbZeroes() == 0)
+      return;
+
+    // Compute G_l(X_i) for each attribute X_i ∈ X_l − {X_∅}
+    // using the counts n_ijk(l).
+
+    // The idea of a priorityQueue is too much overhead
+    // PriorityQueue<FeatureGval> q = new PriorityQueue<>();
+    double Gl_Xa = 0;
+    double Gl_Xb = 0;
+    int feature_Xa = 0;
+    double currentGl;
+    // Assume nbOfAttributes(leaf) == nbOfAttributes(example):
+    for (int i = 0; i < example.attributeValues.length; i++) {
+      currentGl = leaf.splitEval(i);
+      if (currentGl > Gl_Xa) {
+        Gl_Xb = Gl_Xa;
+        Gl_Xa = currentGl;
+        feature_Xa = i;
+      } else if(currentGl > Gl_Xb) {
+        Gl_Xb = currentGl;
+      }
+//      q.add(new FeatureGval(i, leaf.splitEval(i)));
+    }
 
 
+//    FeatureGval a = q.poll();
+//    FeatureGval b = q.poll();
+//    double Gl_Xa = Objects.requireNonNull(a, "Queue must contain at least one element").getGValue();
+//    double Gl_Xb = Objects.requireNonNull(b, "Queue must contain at least two elements").getGValue();
+    if (Gl_Xa - Gl_Xb <= epsilon() /* TODO check whether X_a != X_∅ ?*/)
+      return;
+    // Replace l by an internal node that splits on X_a
+    VfdtNode[] children = generateChildren(feature_Xa);
+    leaf.addChildren(feature_Xa, children);
+
+    // TODO incorporate G_mX_0
+
+    // For each class y k and each value x ij of each attribute X_i ∈ X_m − {X_∅}
+    // Let n_ijk(l_m) = 0.
+    // -> This is done when calling the constructor of VfdtNode
   }
 
+
+  private double epsilon() {
+    double R = Math.log10(this.nbFeatureValues.length);
+    double n = nbExamplesProcessed;
+    return Math.sqrt(R * R * Math.log(1/delta) * 1 / (2*n));
+  }
+
+  private VfdtNode[] generateChildren(int X_a) {
+    // Add a new leaf l_m , and let X_m = X − {X_a}
+    VfdtNode[] children = new VfdtNode[nbFeatureValues[X_a]];
+    int[] newNbFeatureValues = nbFeatureValues.clone();
+    newNbFeatureValues[X_a] = 1;
+    int[] newPossibleSplitFeatures = Arrays.stream(root.getPossibleSplitFeatures().clone()).filter(f -> f != X_a).toArray();
+    for (int i = 0; i < children.length; i++) {
+      // Need to create a new VfdtNode instance for each i in order to prevent reference semantic side effects
+      children[i] = new VfdtNode(newNbFeatureValues.clone(), newPossibleSplitFeatures.clone());
+    }
+
+    // Update size of HT
+    this.nbOfNodes += children.length;
+    return children;
+  }
 
   /**
    * Uses the current model to calculate the probability that an attributeValues belongs to class
@@ -73,14 +150,13 @@ public class Vfdt extends IncrementalLearner<Integer> {
    */
   @Override
   public double makePrediction(Integer[] example) {
-
-    double prediction = 0;
-
     /*
       FILL IN HERE
     */
-
-    return prediction;
+    VfdtNode leaf = root.sortExample(example);
+    // TODO is this correct?
+    //  (is conform with: https://datascience.stackexchange.com/questions/11171/decision-tree-how-to-understand-or-calculate-the-probability-confidence-of-pred)
+    return (double) leaf.getNbOnes() / ((double) leaf.getNbOnes() + leaf.getNbZeroes());
   }
 
   /**
@@ -91,13 +167,56 @@ public class Vfdt extends IncrementalLearner<Integer> {
    * <p>THIS METHOD IS REQUIRED
    *
    * @param path the path to the file
-   * @throws IOException
+   * @throws IOException if the file can't be written
    */
   @Override
   public void writeModel(String path) throws IOException {
     /*
       FILL IN HERE
     */
+    StringBuilder outputBuilder = new StringBuilder();
+    outputBuilder.append(this.nbOfNodes).append("\n");
+    List<Set<VfdtNode>> nodes = root.getNodes();
+    Set<VfdtNode> internalNodes = nodes.get(0);
+    Set<VfdtNode> leafNodes = nodes.get(1);
+
+    // Write leaf node representations
+    int id = 0;
+    for (VfdtNode leaf : leafNodes) {
+      leaf.setIdentifier(id);
+      outputBuilder.append(id++).append(" L pf: [");
+      for (int f : leaf.getPossibleSplitFeatures())
+        outputBuilder.append(f).append(",");
+      outputBuilder.append("] nijk:[");
+      int[][][] nijk = leaf.getNijk();
+      for (int i = 0; i < nijk.length; i++) {
+        for (int j = 0; j < nijk[i].length; j++) {
+          for (int k = 0; k <= 1; k++) {
+            outputBuilder
+                    .append(i).append(":")
+                    .append(j).append(":")
+                    .append(k).append(":")
+                    .append(nijk[i][j][k]).append(",");
+          }
+        }
+      }
+      outputBuilder.append("]\n");
+    }
+
+    // Write internal node representations
+    for (VfdtNode node : internalNodes) {
+      outputBuilder.append(id++).append(" D f:").append(node.getSplitFeature()).append(" ch:[");
+      for (VfdtNode child: node.getChildren()) {
+        // Add identifier of child to writer
+        outputBuilder.append(child.getIdentifier()).append(",");
+      }
+      outputBuilder.append("]\n");
+    }
+
+    BufferedWriter writer = new BufferedWriter(new FileWriter(path, false));
+    writer.write(outputBuilder.toString());
+    writer.flush();
+    writer.close();
   }
 
 
@@ -110,13 +229,84 @@ public class Vfdt extends IncrementalLearner<Integer> {
    * @param path the path to the model file
    * @param nbExamplesProcessed the nb of examples that were processed to get to the model in the
    *     file.
-   * @throws IOException
+   * @throws IOException: if the model can't be read.
    */
   @Override
   public void readModel(String path, int nbExamplesProcessed) throws IOException {
     super.readModel(path, nbExamplesProcessed);
 
     /* FILL IN HERE */
+    this.nbExamplesProcessed = nbExamplesProcessed;
+
+    System.out.println(System.getProperty("user.dir"));
+    Scanner scanner;
+    path = System.getProperty("user.dir") + "/" + path;
+    scanner = new Scanner(new FileReader(path));
+    this.nbOfNodes = Integer.parseInt(scanner.nextLine());
+
+    String[] splitLine;
+    List<VfdtNode> leafNodes = new ArrayList<>();
+    List<VfdtNode> internalNodes = new ArrayList<>();
+
+    while (scanner.hasNext()) {
+      splitLine = scanner.nextLine().split(" ");
+      if (splitLine[1].equals("L"))
+        leafNodes.add(parseLeaf(splitLine));
+      else
+        internalNodes.add(parseInternalNode(splitLine));
+    }
+
+  }
+
+  private VfdtNode parseLeaf(String[] split) {
+    String psfArray = split[2];
+    int nbPossibleSplitFeatures = (int) (((double) psfArray.length() - 5) / 2.0);
+    int[] possibleSplitFeatures = new int[nbPossibleSplitFeatures];
+    int i = 4; // Start at first digit character of string: "pf:[x,y,...]"
+    while (psfArray.charAt(i) != ']') {
+      possibleSplitFeatures[i] = Character.getNumericValue(psfArray.charAt(i));
+      i += 2; // skip comma
+    }
+
+    // Based on: https://stackoverflow.com/a/23945015/15482295
+    VfdtNode leaf = new VfdtNode(this.nbFeatureValues, possibleSplitFeatures);
+
+    String nijkArray = split[3];
+    String count;
+    i = 6; // Start on first numerical character of string "nijk:[x1:x2:x3:x4,...]"
+    while (nijkArray.charAt(i) != ']') {
+      count = nijkArray.substring(6+i*8, 6+(i+1)*8); // one substring of the form: "x1:x2:x3:x4,"
+      leaf.setNijk(
+              Character.getNumericValue(count.charAt(0)),
+              Character.getNumericValue(count.charAt(2)),
+              Character.getNumericValue(count.charAt(4)),
+              Character.getNumericValue(count.charAt(6))
+              );
+    }
+    return leaf;
+  }
+
+  private VfdtNode parseInternalNode(String[] split) {
+    int f = Character.getNumericValue(split[2].charAt(2));
+    String ch = split[3];
+    int nbChildren = (int) (((double) (ch.length() - 5)) / 2.0);
+    VfdtNode[] children = new VfdtNode[nbChildren];
+    int i = 4;
+    int childId;
+    VfdtNode child;
+    while (ch.charAt(i) != ']') {
+      childId = Character.getNumericValue(ch.charAt(i));
+      int[] newPossibleSplitFeatures = Arrays.stream(root.getPossibleSplitFeatures()).filter(e -> e != f).toArray();
+      int[] newNbFeatureValues = nbFeatureValues.clone();
+      newNbFeatureValues[f] = 1;
+      child = new VfdtNode(newNbFeatureValues, newPossibleSplitFeatures);
+      child.setIdentifier(childId);
+      children[i] = child;
+      i += 2;
+    }
+    VfdtNode internalNode = new VfdtNode(nbFeatureValues, new int[] {f});
+    internalNode.addChildren(f, children);
+    return internalNode;
   }
 
 
@@ -183,6 +373,32 @@ public class Vfdt extends IncrementalLearner<Integer> {
     }
     reader.close();
     return nbFeatureValues;
+  }
+
+  /**
+   * An auxiliary class to represent a (feature-id, G-value) pair.
+   */
+  private static class FeatureGval implements Comparable<FeatureGval> {
+    int feature;
+    double gValue;
+
+    public FeatureGval(int featureNb, double gValue) {
+      this.feature = featureNb;
+      this.gValue = gValue;
+    }
+
+    public int getFeature() {
+      return feature;
+    }
+
+    public double getGValue() {
+      return gValue;
+    }
+
+    @Override
+    public int compareTo(FeatureGval other) {
+      return Double.compare(this.getGValue(), other.getGValue());
+    }
   }
 }
 /**

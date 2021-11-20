@@ -3,7 +3,7 @@
  * without permission. Written by Pieter Robberechts, 2021
  */
 
-import java.util.Arrays;
+import java.util.*;
 
 /** This class is a stub for VFDT. */
 public class VfdtNode {
@@ -14,6 +14,7 @@ public class VfdtNode {
 
   private int splitFeature; /* splitting feature */
 
+  // TODO Initialise instance counts (in addChildren?)
   private int[][][] nijk; /* instance counts (see papert ) */
 
   // NOT SURE IF THIS IS SUPPOSED TO BE ADDED IN THIS WAY
@@ -24,7 +25,15 @@ public class VfdtNode {
 
   /* FILL IN HERE */
 
-  private final int[] nbFeatureValues;
+  private int[] nbFeatureValues;
+  int nbOnes = 0;
+  int nbZeroes = 0;
+
+
+  /* self-added fields */
+  private Label label;
+  private double GmX0;
+  private int identifier;
 
   /**
    * Create and initialize a leaf node.
@@ -37,9 +46,13 @@ public class VfdtNode {
   public VfdtNode(int[] nbFeatureValues, int[] possibleSplitFeatures) {
     this.possibleSplitFeatures = possibleSplitFeatures;
     this.nbFeatureValues = nbFeatureValues;
-    children = null;
-
+    this.children = null;
+    this.nijk = new int[nbFeatureValues.length][][];
+    for (int i = 0; i < nijk.length; i++) {
+      this.nijk[i] = new int[nbFeatureValues[i]][2];
+    }
     /* FILL IN HERE */
+    this.label = Label.UNLABELED;
   }
 
 
@@ -53,10 +66,25 @@ public class VfdtNode {
    */
   public void addChildren(int splitFeature, VfdtNode[] nodes) {
     if (nodes == null) throw new IllegalArgumentException("null children");
-    nbSplits++;
+    if (Arrays.stream(nodes).anyMatch(n -> n.children != null))
+      throw new IllegalArgumentException("Children must not have child nodes");
+    this.nbSplits++;
+    this.splitFeature = splitFeature;
 
     /* FILL IN HERE */
 
+    for (VfdtNode vfdtNode : nodes) {
+      vfdtNode.nbFeatureValues = this.nbFeatureValues;
+      // For node i it holds that: `possibleSplitFeatures[featureValue] == 1`
+      vfdtNode.nbFeatureValues[this.splitFeature] = 1;
+      vfdtNode.nijk = this.nijk;
+      for (int f = 0; f < nbFeatureValues.length; f++) {
+        if (f != splitFeature)
+          // Assume binary classification => k == 2
+          vfdtNode.nijk[f] = new int[nbFeatureValues[f]][2];
+      }
+      this.children = nodes;
+    }
   }
 
   /**
@@ -66,13 +94,17 @@ public class VfdtNode {
    *
    * @param example is the test attributeValues to sort.
    */
+  // public VfdtNode sortExample(Integer[] example) {
   public VfdtNode sortExample(Integer[] example) {
 
-    VfdtNode leaf = null; // change this
-
+//    VfdtNode leaf = null; // change this
     /* FILL IN HERE */
-
-    return leaf;
+    if (this.children == null)
+      return this;
+    VfdtNode nextNode = children[example[splitFeature]];
+    // TODO Need to convert to Integer[]... Can't this be done more efficiently?
+    Integer[] exampleConverted = Arrays.stream(nextNode.possibleSplitFeatures).boxed().toArray(Integer[]::new);
+    return nextNode.sortExample(exampleConverted);
   }
 
   /**
@@ -144,6 +176,216 @@ public class VfdtNode {
   }
 
   /**
+   * Increment the count of number of occurrences of
+   * feature i with value j and class k by one.
+   *
+   * @param i: the feature id
+   * @param j: the value of the feature j
+   * @param k: the class value
+   */
+  public void incrementNijk(int i, int j, int k) {
+    nijk[i][j][k]++;
+  }
+
+  /**
+   * Modify this VfdtNode's instance count at the given indexes
+   *
+   * @param i: The feature of the instance's count to set
+   * @param j: The value of feature i of the instance's count to set
+   * @param k: The class of the instance's count to set
+   * @param n: The count of instance with feature i, value j and class k to set
+   */
+  public void setNijk(int i, int j, int k, int n) {
+    this.nijk[i][j][k] = n;
+  }
+
+  // TODO Implement the two methods below in one iteration over this VFDT?
+  /**
+   * Get all leaf nodes of this Vfdt
+   *
+   * @return leafNodes: a set of the leaf nodes of this Vfdt.
+   */
+  // Based on: https://stackoverflow.com/questions/31384894/how-to-get-all-leaf-nodes-of-a-tree
+  @Deprecated
+  public Set<VfdtNode> getLeafNodes() {
+    Set<VfdtNode> leafNodes = new HashSet<>();
+    if (this.children == null)
+      leafNodes.add(this);
+    else {
+      for (VfdtNode child : children)
+        leafNodes.addAll(child.getLeafNodes());
+    }
+    return leafNodes;
+  }
+
+  /**
+   * Get all internal nodes of this Vfdt
+   *
+   * @return internalNodes: a set of the internal nodes of this Vfdt.
+   */
+  // Based on: https://stackoverflow.com/questions/31384894/how-to-get-all-leaf-nodes-of-a-tree
+  @Deprecated
+  public Set<VfdtNode> getInternalNodes() {
+    Set<VfdtNode> internalNodes = new HashSet<>();
+
+    if (this.children == null)
+      return internalNodes;
+    else {
+      internalNodes.add(this);
+      for (VfdtNode child : children)
+        internalNodes.addAll(child.getLeafNodes());
+    }
+    return internalNodes;
+  }
+
+  /**
+   * Get a {@link Set} containing: <ul>
+   *     <li>as first element a {@link List} of the internal nodes of this Vfdt,</li>
+   *    <li> and as second element another {@link List} containing the leaf nodes of this Vfdt.</li>
+   * </ul>
+   *
+   * @return nodes: a {@link Set} containing: <ul>
+   *     <li> as first element a {@link List} of the internal nodes of this Vfdt,</li>
+   *    <li> and as second element another {@link List} containing the leaf nodes of this Vfdt</li>
+   * </ul>
+   */
+  public List<Set<VfdtNode>> getNodes() {
+    List<Set<VfdtNode>> nodes = new ArrayList<>(); // nodes.get(0) == internal nodes, nodes.get(1) == leaf nodes
+    nodes.add(new HashSet<>()); // internal nodes
+    nodes.add(new HashSet<>()); // leaf nodes
+    if (this.children == null)
+      nodes.get(1).add(this); // works because of reference semantics
+    else {
+      nodes.get(0).add(this);
+      for (VfdtNode child : children) {
+        List<Set<VfdtNode>> childResult;
+        childResult = child.getNodes();
+        nodes.get(0).addAll(childResult.get(0));
+        nodes.get(1).addAll(childResult.get(1));
+      }
+    }
+    return nodes;
+  }
+
+  /**
+   * Set the {@link Label} of this node.
+   *
+   * @param label: the {@link Label} to be set.
+   */
+  public void setLabel(Label label) {
+    this.label = label;
+  }
+
+  /**
+   * Get the number of examples in this leaf node
+   * that have class 1
+   *
+   * @return nbOnes: the number of examples in this leaf node
+   *                 that have class 1
+   */
+  public int getNbOnes() {
+    return nbOnes;
+  }
+
+  /**
+   * Get the number of examples in this leaf node
+   * that have class 0
+   *
+   * @return nbOnes: the number of examples in this leaf node
+   *                 that have class 0
+   */
+  public int getNbZeroes() {
+    return nbZeroes;
+  }
+
+  /**
+   * Increase the number of examples in this leaf node
+   * that have class 1 by one.
+   */
+  @Deprecated
+  public void incrementOnes() {
+    this.nbOnes++;
+  }
+
+  /**
+   * Increase the number of examples in this leaf node
+   * that have class 0 by one.
+   */
+  @Deprecated
+  public void incrementZeroes() {
+    this.nbZeroes++;
+  }
+
+  /**
+   * Increment the number of instances classified as one or zero
+   * by one, dependent of the given class value and
+   * update the {@link Label} of this node to reflect the majority
+   * of classes of the examples stored in this leaf node.
+   */
+  public void incrementAndUpateLabel(int toAdd) {
+    if (toAdd == 1)
+      this.nbOnes++;
+    else if (toAdd == 0)
+      this.nbZeroes++;
+    else
+      throw new IllegalArgumentException("Class value must be 0 or 1");
+    label = nbOnes > nbZeroes ? Label.ONE : Label.ZERO;
+  }
+
+  /**
+   * Get the features on which this leaf node
+   * can still be split.
+   *
+   * @return possibleSplitFeatures: an integer array of features
+   *  on which this node can still be split.
+   */
+  public int[] getPossibleSplitFeatures() {
+    return possibleSplitFeatures;
+  }
+
+  /**
+   * Get the instance counts of this leaf
+   *
+   * @return nijk, the instance counts of this leaf.
+   * n[i][j][k] means: there are n instances which have
+   * value j for feature i and are of class k
+   */
+  public int[][][] getNijk() {
+    return nijk;
+  }
+
+  /**
+   * Get the feature this node was split on
+   *
+   * @return splitFeature: the feature this node was split on
+   */
+  public int getSplitFeature() {
+    return splitFeature;
+  }
+
+  /**
+   * Get the children of this node
+   *
+   * @return children: an array of {@link VfdtNode} which contains
+   * the children of this {@link VfdtNode}.
+   */
+  public VfdtNode[] getChildren() {
+    return children;
+  }
+
+  public void setIdentifier(int id) {
+    this.identifier = id;
+  }
+
+  public int getIdentifier() {
+    return this.identifier;
+  }
+
+  //  public void calculateGmX0() {
+//    this.GmX0 = label == Label.ONE ? splitEval()
+//  }
+
+  /**
    * Return the visualization of the tree.
    *
    * <p>DO NOT CHANGE THIS METHOD.
@@ -163,5 +405,5 @@ public class VfdtNode {
     }
   }
 
-
+  private enum Label {ONE, ZERO, UNLABELED}
 }

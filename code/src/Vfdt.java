@@ -76,7 +76,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
 
     // Label l with the majority class among the examples
     // seen so far at l.
-    leaf.incrementAndUpateLabel(example.classValue);
+    leaf.incrementCounts(example.classValue);
+    leaf.updateLabel();
 
     // If the examples seen so far at l are not all of the same
     // class, then
@@ -85,9 +86,6 @@ public class Vfdt extends IncrementalLearner<Integer> {
 
     // Compute G_l(X_i) for each attribute X_i ∈ X_l − {X_∅}
     // using the counts n_ijk(l).
-
-    // The idea of a priorityQueue is too much overhead
-    // PriorityQueue<FeatureGval> q = new PriorityQueue<>();
     double Gl_Xa = 0;
     double Gl_Xb = 0;
     int feature_Xa = 0;
@@ -102,34 +100,33 @@ public class Vfdt extends IncrementalLearner<Integer> {
       } else if(currentGl > Gl_Xb) {
         Gl_Xb = currentGl;
       }
-//      q.add(new FeatureGval(i, leaf.splitEval(i)));
     }
 
-
-//    FeatureGval a = q.poll();
-//    FeatureGval b = q.poll();
-//    double Gl_Xa = Objects.requireNonNull(a, "Queue must contain at least one element").getGValue();
-//    double Gl_Xb = Objects.requireNonNull(b, "Queue must contain at least two elements").getGValue();
     if (Gl_Xa - Gl_Xb <= epsilon() /* TODO check whether X_a != X_∅ ?*/)
       return;
+
     // Replace l by an internal node that splits on X_a
-    VfdtNode[] children = generateChildren(feature_Xa);
+    VfdtNode[] children = leaf.generateChildren(feature_Xa);
     leaf.addChildren(feature_Xa, children);
+
+    this.nbOfNodes += children.length;
 
     // TODO incorporate G_mX_0
 
     // For each class y k and each value x ij of each attribute X_i ∈ X_m − {X_∅}
     // Let n_ijk(l_m) = 0.
-    // -> This is done when calling the constructor of VfdtNode
+    // -> This is done when calling the constructor of VfdtNode in generateChildren
   }
 
 
   private double epsilon() {
-    double R = Math.log10(this.nbFeatureValues.length);
+    // TODO is this R correct? (should be: corrected now to use log2)
+    double R = Math.log(this.nbFeatureValues.length) / Math.log(2);
     double n = nbExamplesProcessed;
-    return Math.sqrt(R * R * Math.log(1/delta) * 1 / (2*n));
+    return Math.sqrt((R * R * Math.log(1/delta)) / (2*n));
   }
 
+  @Deprecated
   private VfdtNode[] generateChildren(int X_a) {
     // Add a new leaf l_m , and let X_m = X − {X_a}
     VfdtNode[] children = new VfdtNode[nbFeatureValues[X_a]];
@@ -337,27 +334,12 @@ public class Vfdt extends IncrementalLearner<Integer> {
     int[] childrenIds = new int[nbChildren];
 
     int i = 0;
-    for (String childId : ch.substring(4,ch.length()-1).split(",")) {
+    String[] idStrings = ch.substring(4,ch.length()-1).split(",");
+    for (String childId : idStrings) {
       childrenIds[i] = Integer.parseInt(childId);
       i++;
     }
 
-//    int i = 4;
-//    int j = 0;
-//    int childId;
-//    int[] childrenIds = new int[nbChildren];
-//    VfdtNode child;
-//    while (ch.charAt(i) != ']') {
-//      childId = Character.getNumericValue(ch.charAt(i));
-//      int[] newPossibleSplitFeatures = Arrays.stream(root.getPossibleSplitFeatures()).filter(e -> e != f).toArray();
-//      int[] newNbFeatureValues = nbFeatureValues.clone();
-//      newNbFeatureValues[f] = 1;
-//      child = new VfdtNode(newNbFeatureValues, newPossibleSplitFeatures);
-//      child.setIdentifier(childId);
-//      childrenIds[j] = childId;
-//      i += 2;
-//      j++;
-//    }
     VfdtNode internalNode = new VfdtNode(nbFeatureValues, new int[] {f});
     internalNode.setIdentifier(id);
     internalNode.setChildrenIds(childrenIds);

@@ -73,18 +73,17 @@ public class VfdtNode {
 
     /* FILL IN HERE */
 
-    for (VfdtNode vfdtNode : nodes) {
-      vfdtNode.nbFeatureValues = this.nbFeatureValues.clone();
-      // For node i it holds that: `possibleSplitFeatures[featureValue] == 1`
-      vfdtNode.nbFeatureValues[splitFeature] = 1;
+//    for (VfdtNode vfdtNode : nodes) {
       // TODO Initialise with empty counts or copy parent's counts (?)
+      // -> we must initialise with empty counts, but the count's dimensions take
+      // the splitFeature on into account
 //      vfdtNode.nijk = this.nijk.clone();
 //      for (int f = 0; f < nbFeatureValues.length; f++) {
 //        if (f != splitFeature)
 //          // Assume binary classification => k == 2
 //          vfdtNode.nijk[f] = new int[nbFeatureValues[f]][2];
 //      }
-    }
+//    }
     this.children = nodes;
   }
 
@@ -106,6 +105,24 @@ public class VfdtNode {
     // TODO Need to convert to Integer[]... Can't this be done more efficiently?
     Integer[] exampleConverted = Arrays.stream(nextNode.possibleSplitFeatures).boxed().toArray(Integer[]::new);
     return nextNode.sortExample(exampleConverted);
+  }
+
+  protected VfdtNode[] generateChildren(int X_a) {
+    // Add a new leaf l_m , and let X_m = X − {X_a}
+    VfdtNode[] children = new VfdtNode[nbFeatureValues[X_a]];
+
+    // Only one value possible of attribute X_a for this leaf
+    int[] newNbFeatureValues = nbFeatureValues.clone();
+    newNbFeatureValues[X_a] = 1;
+
+    // This leaf can no longer split on feature X_a
+    int[] newPossibleSplitFeatures = Arrays.stream(possibleSplitFeatures.clone()).filter(f -> f != X_a).toArray();
+
+    // Create the children
+    for (int i = 0; i < children.length; i++)
+      children[i] = new VfdtNode(newNbFeatureValues, newPossibleSplitFeatures);
+
+    return children;
   }
 
   /**
@@ -185,6 +202,7 @@ public class VfdtNode {
     double result = p0i * Math.log(p0i) / Math.log(2) + p1i * Math.log(p1i) / Math.log(2);
     return Double.isNaN(result) ? 0.0 : result;
   }
+
 
   /**
    * Increment the count of number of occurrences of
@@ -338,17 +356,22 @@ public class VfdtNode {
 
   /**
    * Increment the number of instances classified as one or zero
-   * by one, dependent of the given class value and
-   * update the {@link Label} of this node to reflect the majority
-   * of classes of the examples stored in this leaf node.
+   * by one, dependent of the given class value.
    */
-  public void incrementAndUpateLabel(int toAdd) {
+  public void incrementCounts(int toAdd) {
     if (toAdd == 1)
       this.nbOnes++;
     else if (toAdd == 0)
       this.nbZeroes++;
     else
       throw new IllegalArgumentException("Class value must be 0 or 1");
+  }
+
+  /**
+   * Update the {@link Label} of this leaf node to reflect the
+   * majority of classes of the examples stored in this leaf node.
+   */
+  public void updateLabel() {
     label = nbOnes > nbZeroes ? Label.ONE : Label.ZERO;
   }
 

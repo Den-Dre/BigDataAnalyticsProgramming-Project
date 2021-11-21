@@ -4,6 +4,7 @@
  */
 
 import java.util.*;
+import java.util.function.DoubleBinaryOperator;
 
 /** This class is a stub for VFDT. */
 public class VfdtNode {
@@ -140,6 +141,9 @@ public class VfdtNode {
     ig = entropyS[0]; // Initialise information gain with class entropy
     S  = entropyS[1];
 
+    if (S == 0.0)
+      return 0.0;
+
     for (int v = 0; v < nijk[featureId].length; v++) { // values of features[featureId]
       zeroes = nijk[featureId][v][0];
       ones   = nijk[featureId][v][1];
@@ -155,6 +159,8 @@ public class VfdtNode {
     int nbZeroes = 0; // nb. of instances classified as 0
 
     // TODO can this be done more efficiently?
+    // We also hold count of the nb of ones and zeros in non static fields,
+    // but the information gain method header was given to be static...
     for (int i = 0; i < nijk.length; i++) {       // Over all possible features...
       for (int j = 0; j < nijk[i].length; j++) {  // ... find all instances classified as one and zero
         nbOnes += nijk[i][j][1];
@@ -163,6 +169,8 @@ public class VfdtNode {
     }
 
     double S = (double) nbOnes + nbZeroes;
+    if (S == 0.0) // then nbZeroes == nbOnes == S == 0, i.e. maximal impurity
+      return new double[] {0.0, S};
     double p0 = (double) nbZeroes / S;
     double p1 = (double) nbOnes / S;
     return new double[] {- (p0 * Math.log(p0) / Math.log(2) + p1 * Math.log(p1) / Math.log(2)), S};
@@ -170,9 +178,12 @@ public class VfdtNode {
 
   private static double classEntropy(int[] nk, double Si) {
     // Calculate Class entropy for values of feature i
+    if (Si == 0.0)
+      return 1.0;
     double p0i = (double) nk[0] / Si;
     double p1i = (double) nk[1] / Si;
-    return - p0i * Math.log(p0i) / Math.log(2) + p1i * Math.log(p1i) / Math.log(2);
+    double result = p0i * Math.log(p0i) / Math.log(2) + p1i * Math.log(p1i) / Math.log(2);
+    return Double.isNaN(result) ? 0.0 : result;
   }
 
   /**

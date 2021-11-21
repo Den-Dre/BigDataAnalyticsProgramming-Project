@@ -2,8 +2,15 @@
  * Copyright (c) DTAI - KU Leuven – All rights reserved. Proprietary, do not copy or distribute
  * without permission. Written by Pieter Robberechts, 2021
  */
-import java.io.*;
+import java.io.IOException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+
 import java.util.*;
+import java.util.Map.Entry;
 
 /** This class is a stub for VFDT. */
 public class Vfdt extends IncrementalLearner<Integer> {
@@ -154,6 +161,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
       FILL IN HERE
     */
     VfdtNode leaf = root.sortExample(example);
+    if (root.getChildren() == null) // Based on the second test in VfdtSanityChecks.java
+      return 0.5;
     // TODO is this correct?
     //  (is conform with: https://datascience.stackexchange.com/questions/11171/decision-tree-how-to-understand-or-calculate-the-probability-confidence-of-pred)
     return (double) leaf.getNbOnes() / ((double) leaf.getNbOnes() + leaf.getNbZeroes());
@@ -176,15 +185,15 @@ public class Vfdt extends IncrementalLearner<Integer> {
     */
     StringBuilder outputBuilder = new StringBuilder();
     outputBuilder.append(this.nbOfNodes).append("\n");
-    List<Set<VfdtNode>> nodes = root.getNodes();
-    Set<VfdtNode> internalNodes = nodes.get(0);
-    Set<VfdtNode> leafNodes = nodes.get(1);
+    List<List<VfdtNode>> nodes = root.getNodes();
+    List<VfdtNode> internalNodes = nodes.get(0);
+    List<VfdtNode> leafNodes = nodes.get(1);
 
     // Write leaf node representations
     int id = 0;
     for (VfdtNode leaf : leafNodes) {
       leaf.setIdentifier(id);
-      outputBuilder.append(id++).append(" L pf: [");
+      outputBuilder.append(id++).append(" L pf:[");
       for (int f : leaf.getPossibleSplitFeatures())
         outputBuilder.append(f).append(",");
       outputBuilder.append("] nijk:[");
@@ -204,13 +213,18 @@ public class Vfdt extends IncrementalLearner<Integer> {
     }
 
     // Write internal node representations
+    if (internalNodes.get(0).getIdentifier() != -1) {
+      internalNodes.sort(Comparator.comparingInt(VfdtNode::getIdentifier));
+    }
     for (VfdtNode node : internalNodes) {
-      outputBuilder.append(id++).append(" D f:").append(node.getSplitFeature()).append(" ch:[");
+      outputBuilder .append(node.getIdentifier() != -1 ? node.getIdentifier() : id) .append(" D f:").append(node.getSplitFeature()).append(" ch:[");
       for (VfdtNode child: node.getChildren()) {
         // Add identifier of child to writer
+        // Child's identifier was set in the loop above
         outputBuilder.append(child.getIdentifier()).append(",");
       }
       outputBuilder.append("]\n");
+      id++;
     }
 
     BufferedWriter writer = new BufferedWriter(new FileWriter(path, false));
@@ -245,70 +259,111 @@ public class Vfdt extends IncrementalLearner<Integer> {
     this.nbOfNodes = Integer.parseInt(scanner.nextLine());
 
     String[] splitLine;
-    List<VfdtNode> leafNodes = new ArrayList<>();
-    List<VfdtNode> internalNodes = new ArrayList<>();
+    Map<Integer, VfdtNode> leafNodes = new LinkedHashMap<>();     // Preserve insertion order
+    Map<Integer, VfdtNode> internalNodes = new LinkedHashMap<>(); // Preserve insertion order
+    int id;
+    VfdtNode node;
 
+    // Read in the file and convert to VfdtNodes
     while (scanner.hasNext()) {
       splitLine = scanner.nextLine().split(" ");
+      id = Integer.parseInt(splitLine[0]);
       if (splitLine[1].equals("L"))
-        leafNodes.add(parseLeaf(splitLine));
-      else
-        internalNodes.add(parseInternalNode(splitLine));
+        leafNodes.put(id, parseLeaf(splitLine));
+      else {
+        node = parseInternalNode(splitLine);
+        if (!scanner.hasNext()) // Last line of file
+          this.root = node;
+        internalNodes.put(id, node);
+      }
     }
 
+    // Build the Vfdt
+    for (Entry<Integer, VfdtNode> internalNode : internalNodes.entrySet()) {
+      node = internalNode.getValue();
+      int[] childrenIds = node.getChildrenIds();
+      VfdtNode[] children = new VfdtNode[childrenIds.length];
+
+      int currId;
+      for (int i = 0; i < childrenIds.length; i++) {
+        currId = childrenIds[i];
+        children[i] = leafNodes.containsKey(currId) ? leafNodes.get(currId) : internalNodes.get(currId);
+      }
+      node.addChildren(node.getSplitFeature(), children);
+    }
   }
 
   private VfdtNode parseLeaf(String[] split) {
-    String psfArray = split[2];
-    int nbPossibleSplitFeatures = (int) (((double) psfArray.length() - 5) / 2.0);
+    String pfArray = split[2];
+    int nbPossibleSplitFeatures = (int) (((double) pfArray.length() - 5) / 2.0);
     int[] possibleSplitFeatures = new int[nbPossibleSplitFeatures];
-    int i = 4; // Start at first digit character of string: "pf:[x,y,...]"
-    while (psfArray.charAt(i) != ']') {
-      possibleSplitFeatures[i] = Character.getNumericValue(psfArray.charAt(i));
-      i += 2; // skip comma
+    int i = 0;
+    for (String feature : pfArray.substring(4,pfArray.length()-1).split(",")) {
+      possibleSplitFeatures[i] = Integer.parseInt(feature);
+      i++;
     }
 
     // Based on: https://stackoverflow.com/a/23945015/15482295
     VfdtNode leaf = new VfdtNode(this.nbFeatureValues, possibleSplitFeatures);
+    leaf.setIdentifier(Integer.parseInt(split[0]));
 
-    String nijkArray = split[3];
-    String count;
-    i = 6; // Start on first numerical character of string "nijk:[x1:x2:x3:x4,...]"
-    while (nijkArray.charAt(i) != ']') {
-      count = nijkArray.substring(6+i*8, 6+(i+1)*8); // one substring of the form: "x1:x2:x3:x4,"
+    String[] counts = getCounts(split);
+    if (counts.length == 1) // Empty nijk array on this line
+      return leaf;
+
+    String[] numbers;
+    for (String count : counts) {
+      numbers = count.split(":");
       leaf.setNijk(
-              Character.getNumericValue(count.charAt(0)),
-              Character.getNumericValue(count.charAt(2)),
-              Character.getNumericValue(count.charAt(4)),
-              Character.getNumericValue(count.charAt(6))
-              );
+              Integer.parseInt(numbers[0]),
+              Integer.parseInt(numbers[1]),
+              Integer.parseInt(numbers[2]),
+              Integer.parseInt(numbers[3])
+      );
     }
     return leaf;
   }
 
-  private VfdtNode parseInternalNode(String[] split) {
-    int f = Character.getNumericValue(split[2].charAt(2));
-    String ch = split[3];
-    int nbChildren = (int) (((double) (ch.length() - 5)) / 2.0);
-    VfdtNode[] children = new VfdtNode[nbChildren];
-    int i = 4;
-    int childId;
-    VfdtNode child;
-    while (ch.charAt(i) != ']') {
-      childId = Character.getNumericValue(ch.charAt(i));
-      int[] newPossibleSplitFeatures = Arrays.stream(root.getPossibleSplitFeatures()).filter(e -> e != f).toArray();
-      int[] newNbFeatureValues = nbFeatureValues.clone();
-      newNbFeatureValues[f] = 1;
-      child = new VfdtNode(newNbFeatureValues, newPossibleSplitFeatures);
-      child.setIdentifier(childId);
-      children[i] = child;
-      i += 2;
-    }
-    VfdtNode internalNode = new VfdtNode(nbFeatureValues, new int[] {f});
-    internalNode.addChildren(f, children);
-    return internalNode;
+  private String[] getCounts(String[] split) {
+    // Return an array containing only the nijk quartets "x0:x1:x2:x3"
+    return split[3].substring(6, split[3].length()-1).split(",");
   }
 
+  private VfdtNode parseInternalNode(String[] split) {
+    int f = Character.getNumericValue(split[2].charAt(2));
+    int id = Integer.parseInt(split[0]);
+    String ch = split[3];
+    int nbChildren = (int) (((double) (ch.length() - 5)) / 2.0);
+    int[] childrenIds = new int[nbChildren];
+
+    int i = 0;
+    for (String childId : ch.substring(4,ch.length()-1).split(",")) {
+      childrenIds[i] = Integer.parseInt(childId);
+      i++;
+    }
+
+//    int i = 4;
+//    int j = 0;
+//    int childId;
+//    int[] childrenIds = new int[nbChildren];
+//    VfdtNode child;
+//    while (ch.charAt(i) != ']') {
+//      childId = Character.getNumericValue(ch.charAt(i));
+//      int[] newPossibleSplitFeatures = Arrays.stream(root.getPossibleSplitFeatures()).filter(e -> e != f).toArray();
+//      int[] newNbFeatureValues = nbFeatureValues.clone();
+//      newNbFeatureValues[f] = 1;
+//      child = new VfdtNode(newNbFeatureValues, newPossibleSplitFeatures);
+//      child.setIdentifier(childId);
+//      childrenIds[j] = childId;
+//      i += 2;
+//      j++;
+//    }
+    VfdtNode internalNode = new VfdtNode(nbFeatureValues, new int[] {f});
+    internalNode.setIdentifier(id);
+    internalNode.setChildrenIds(childrenIds);
+    internalNode.setSplitFeature(f);
+    return internalNode;
+  }
 
   /**
    * Return the visualization of the tree.

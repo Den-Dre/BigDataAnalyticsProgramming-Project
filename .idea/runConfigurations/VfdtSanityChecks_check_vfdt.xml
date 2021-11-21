@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="VfdtSanityChecks_check_vfdt" type="JUnit" factoryName="JUnit">
+    <module name="assignment1" />
+    <option name="PACKAGE_NAME" value="" />
+    <option name="MAIN_CLASS_NAME" value="VfdtSanityChecks" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="class" />
+    <option name="VM_PARAMETERS" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/code" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

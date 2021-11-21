@@ -28,12 +28,13 @@ public class VfdtNode {
   private int[] nbFeatureValues;
   int nbOnes = 0;
   int nbZeroes = 0;
+  private int[] childrenIds;
 
 
   /* self-added fields */
   private Label label;
   private double GmX0;
-  private int identifier;
+  private int identifier = -1;
 
   /**
    * Create and initialize a leaf node.
@@ -66,25 +67,24 @@ public class VfdtNode {
    */
   public void addChildren(int splitFeature, VfdtNode[] nodes) {
     if (nodes == null) throw new IllegalArgumentException("null children");
-    if (Arrays.stream(nodes).anyMatch(n -> n.children != null))
-      throw new IllegalArgumentException("Children must not have child nodes");
     this.nbSplits++;
     this.splitFeature = splitFeature;
 
     /* FILL IN HERE */
 
     for (VfdtNode vfdtNode : nodes) {
-      vfdtNode.nbFeatureValues = this.nbFeatureValues;
+      vfdtNode.nbFeatureValues = this.nbFeatureValues.clone();
       // For node i it holds that: `possibleSplitFeatures[featureValue] == 1`
-      vfdtNode.nbFeatureValues[this.splitFeature] = 1;
-      vfdtNode.nijk = this.nijk;
-      for (int f = 0; f < nbFeatureValues.length; f++) {
-        if (f != splitFeature)
-          // Assume binary classification => k == 2
-          vfdtNode.nijk[f] = new int[nbFeatureValues[f]][2];
-      }
-      this.children = nodes;
+      vfdtNode.nbFeatureValues[splitFeature] = 1;
+      // TODO Initialise with empty counts or copy parent's counts (?)
+//      vfdtNode.nijk = this.nijk.clone();
+//      for (int f = 0; f < nbFeatureValues.length; f++) {
+//        if (f != splitFeature)
+//          // Assume binary classification => k == 2
+//          vfdtNode.nijk[f] = new int[nbFeatureValues[f]][2];
+//      }
     }
+    this.children = nodes;
   }
 
   /**
@@ -249,22 +249,31 @@ public class VfdtNode {
    *    <li> and as second element another {@link List} containing the leaf nodes of this Vfdt</li>
    * </ul>
    */
-  public List<Set<VfdtNode>> getNodes() {
-    List<Set<VfdtNode>> nodes = new ArrayList<>(); // nodes.get(0) == internal nodes, nodes.get(1) == leaf nodes
-    nodes.add(new HashSet<>()); // internal nodes
-    nodes.add(new HashSet<>()); // leaf nodes
+  public List<List<VfdtNode>> getNodes() {
+    List<List<VfdtNode>> nodes = new ArrayList<>(); // nodes.get(0) == internal nodes, nodes.get(1) == leaf nodes
+    nodes.add(new ArrayList<>()); // internal nodes
+    nodes.add(new ArrayList<>()); // leaf nodes
     if (this.children == null)
       nodes.get(1).add(this); // works because of reference semantics
     else {
       nodes.get(0).add(this);
       for (VfdtNode child : children) {
-        List<Set<VfdtNode>> childResult;
+        List<List<VfdtNode>> childResult;
         childResult = child.getNodes();
         nodes.get(0).addAll(childResult.get(0));
         nodes.get(1).addAll(childResult.get(1));
       }
     }
     return nodes;
+  }
+
+  @Override
+  public String toString() {
+    return "VfdtNode <" +
+            "id: " + identifier +
+            " Ch: " + Arrays.toString(childrenIds) +
+            " pf: " + Arrays.toString(possibleSplitFeatures) +
+            ">";
   }
 
   /**
@@ -379,6 +388,18 @@ public class VfdtNode {
 
   public int getIdentifier() {
     return this.identifier;
+  }
+
+  public int[] getChildrenIds() {
+    return childrenIds;
+  }
+
+  public void setChildrenIds(int[] ids) {
+    this.childrenIds = ids;
+  }
+
+  public void setSplitFeature(int f) {
+    this.splitFeature = f;
   }
 
   //  public void calculateGmX0() {

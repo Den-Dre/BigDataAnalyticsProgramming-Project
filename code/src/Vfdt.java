@@ -46,7 +46,6 @@ public class Vfdt extends IncrementalLearner<Integer> {
     int[] possibleFeatures = new int[nbFeatureValues.length];
     for (int i = 0; i < nbFeatureValues.length; i++) possibleFeatures[i] = i;
     root = new VfdtNode(nbFeatureValues, possibleFeatures);
-    this.nbOfNodes = 1;
 
     /*
       FILL IN HERE
@@ -411,33 +410,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
     reader.close();
     return nbFeatureValues;
   }
-
-  /**
-   * An auxiliary class to represent a (feature-id, G-value) pair.
-   */
-  private static class FeatureGval implements Comparable<FeatureGval> {
-    int feature;
-    double gValue;
-
-    public FeatureGval(int featureNb, double gValue) {
-      this.feature = featureNb;
-      this.gValue = gValue;
-    }
-
-    public int getFeature() {
-      return feature;
-    }
-
-    public double getGValue() {
-      return gValue;
-    }
-
-    @Override
-    public int compareTo(FeatureGval other) {
-      return Double.compare(this.getGValue(), other.getGValue());
-    }
-  }
 }
+
 /**
  * This class implements Data for Integers
  *

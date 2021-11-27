@@ -4,7 +4,6 @@
  */
 
 import java.util.*;
-import java.util.function.DoubleBinaryOperator;
 
 /** This class is a stub for VFDT. */
 public class VfdtNode {
@@ -94,10 +93,7 @@ public class VfdtNode {
    *
    * @param example is the test attributeValues to sort.
    */
-  // public VfdtNode sortExample(Integer[] example) {
   public VfdtNode sortExample(Integer[] example) {
-
-//    VfdtNode leaf = null; // change this
     /* FILL IN HERE */
     if (this.children == null)
       return this;

@@ -100,7 +100,7 @@ public class VfdtNode {
     VfdtNode nextNode = children[example[splitFeature]];
     // TODO Need to convert to Integer[]... Can't this be done more efficiently?
     Integer[] exampleConverted = Arrays.stream(nextNode.possibleSplitFeatures).boxed().toArray(Integer[]::new);
-    return nextNode.sortExample(exampleConverted);
+    return nextNode.sortExample(example);
   }
 
   protected VfdtNode[] generateChildren(int X_a) {

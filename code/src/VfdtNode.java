@@ -166,6 +166,7 @@ public class VfdtNode {
     return ig;
   }
 
+  // Functions correctly
   private static double[] classEntropy(int[][][] nijk) {
     // In our case, y is binary so can only be 1 or 0
     int nbOnes = 0;   // nb. of instances classified as 1
@@ -186,16 +187,18 @@ public class VfdtNode {
       return new double[] {0.0, S};
     double p0 = (double) nbZeroes / S;
     double p1 = (double) nbOnes / S;
-    return new double[] {- (p0 * Math.log(p0) / Math.log(2) + p1 * Math.log(p1) / Math.log(2)), S};
+    return new double[] {- (p0 * Math.log(p0) / Math.log(2) + p1 * Math.log(p1) / Math.log(2)),
+            S / (double) nijk.length};
   }
 
+  // Functions correctly
   private static double classEntropy(int[] nk, double Si) {
     // Calculate Class entropy for values of feature i
     if (Si == 0.0)
       return 1.0;
     double p0i = (double) nk[0] / Si;
     double p1i = (double) nk[1] / Si;
-    double result = p0i * Math.log(p0i) / Math.log(2) + p1i * Math.log(p1i) / Math.log(2);
+    double result = -(p0i * Math.log(p0i) / Math.log(2) + p1i * Math.log(p1i) / Math.log(2));
     return Double.isNaN(result) ? 0.0 : result;
   }
 

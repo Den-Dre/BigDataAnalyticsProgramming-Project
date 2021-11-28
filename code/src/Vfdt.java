@@ -79,10 +79,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
     leaf.updateLabel();
 
     // Limit number of G computations
-    if (nbExamplesProcessed < nmin)
+    if (nbExamplesProcessed % nmin != 0)
       return;
-    else
-      nbExamplesProcessed = 0;
 
     // If the examples seen so far at l are not all of the same
     // class, then

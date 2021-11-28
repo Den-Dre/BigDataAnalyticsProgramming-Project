@@ -26,8 +26,8 @@ public class VfdtNode {
   /* FILL IN HERE */
 
   private int[] nbFeatureValues;
-  int nbOnes = 0;
-  int nbZeroes = 0;
+  private int nbOnes = 0;
+  private int nbZeroes = 0;
   private int[] childrenIds;
 
 
@@ -202,6 +202,14 @@ public class VfdtNode {
     return Double.isNaN(result) ? 0.0 : result;
   }
 
+  protected static double classEntropy(int[] nk) {
+    // Calculate Class entropy for values of feature i
+    double Si = nk[0] + nk[1];
+    double p0i = (double) nk[0] / Si;
+    double p1i = (double) nk[1] / Si;
+    double result = -(p0i * Math.log(p0i) / Math.log(2) + p1i * Math.log(p1i) / Math.log(2));
+    return Double.isNaN(result) ? 0.0 : result;
+  }
 
   /**
    * Increment the count of number of occurrences of

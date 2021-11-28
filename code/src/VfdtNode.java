@@ -440,6 +440,9 @@ public class VfdtNode {
     this.splitFeature = f;
   }
 
+  public int[] getNbFeatureValues() {
+    return nbFeatureValues;
+  }
   //  public void calculateGmX0() {
 //    this.GmX0 = label == Label.ONE ? splitEval()
 //  }

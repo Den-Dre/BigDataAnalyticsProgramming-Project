@@ -70,7 +70,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
     for (int i = 0; i < example.attributeValues.length; i++) {
       // Increment n_ijk(l).
       // TODO Every feature of the example should also be present in the features of `leaf`, right?
-      leaf.incrementNijk(i, example.attributeValues[i], example.classValue);
+      if (i < leaf.getNbFeatureValues().length)
+        leaf.incrementNijk(i, example.attributeValues[i], example.classValue);
     }
 
     // Label l with the majority class among the examples

@@ -105,8 +105,8 @@ public class VfdtNode {
     VfdtNode[] children = new VfdtNode[nbFeatureValues[X_a]];
 
     // Only one value possible of attribute X_a for this leaf
-    int[] newNbFeatureValues = nbFeatureValues.clone();
-    newNbFeatureValues[X_a] = 1;
+    int[] newNbFeatureValues = nbFeatureValues;
+//    newNbFeatureValues[X_a] = 1;
 
     // This leaf can no longer split on feature X_a
     int[] newPossibleSplitFeatures = Arrays.stream(possibleSplitFeatures.clone()).filter(f -> f != X_a).toArray();

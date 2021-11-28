@@ -112,6 +112,7 @@ vfdt_small: $(class_d)/Vfdt.class
 	rm -f small.vfdt.prob;
 	time java -cp .:$(class_d) Vfdt $(DELTA) $(TAU) $(NMIN) $(SMALL_DATA_VFDT) $(NB_FEATURE_VALUES_SMALL) small 1000 -writeOutAllPredictions
 
+# time jdb -Xmx4g -classpath .:bin Vfdt 0.000000001 0.05 200 /cw/bdap/assignment1/data/clean/VFDT/ /cw/bdap/assignment1/data/nbFeatureValues.csv  out.clean 200000
 vfdt_clean: $(class_d)/Vfdt.class
 	@echo "Testing VFDT on subset of data"
 	rm -f $(OUT).clean.vfdt.acc ;

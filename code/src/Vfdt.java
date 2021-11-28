@@ -111,10 +111,11 @@ public class Vfdt extends IncrementalLearner<Integer> {
       // Defer computation of G(X_∅) as long as possible
 
       // Based on: https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/metrics/metrics.py#L12
+      // https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/model/vfdt.py#L86
       double GNullAttribute = VfdtNode.classEntropy(new int[]{leaf.getNbZeroes(), leaf.getNbOnes()});
-      if (Gl_Xa <= GNullAttribute)
-        // then not splitting is better than splitting on Xa
-        return;
+//      if (Gl_Xa <= GNullAttribute)
+//        // then not splitting is better than splitting on Xa
+//        return;
 
       // Replace l by an internal node that splits on X_a
       VfdtNode[] children = leaf.generateChildren(feature_Xa);

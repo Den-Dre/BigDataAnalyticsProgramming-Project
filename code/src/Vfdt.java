@@ -75,8 +75,14 @@ public class Vfdt extends IncrementalLearner<Integer> {
 
     // Label l with the majority class among the examples
     // seen so far at l.
-    leaf.incrementCounts(example.classValue);
+    leaf.incrementClassCounts(example.classValue);
     leaf.updateLabel();
+
+    // Limit number of G computations
+    if (nbExamplesProcessed < nmin)
+      return;
+    else
+      nbExamplesProcessed = 0;
 
     // If the examples seen so far at l are not all of the same
     // class, then
@@ -101,24 +107,26 @@ public class Vfdt extends IncrementalLearner<Integer> {
       }
     }
 
-    if (Gl_Xa - Gl_Xb <= epsilon() )
-      return;
+    double eps = epsilon();
+    if (Gl_Xa - Gl_Xb > eps || eps < tau) {
+      // Defer computation of G(X_∅) as long as possible
 
-    // Defer computation of G(X_∅) as long as possible
-    double GNullAttribute = VfdtNode.classEntropy(new int[] {leaf.getNbZeroes(), leaf.getNbOnes()});
-    if (Gl_Xa <= GNullAttribute)
-      // then not splitting is better than splitting on Xa
-      return;
+      // Based on: https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/metrics/metrics.py#L12
+      double GNullAttribute = VfdtNode.classEntropy(new int[]{leaf.getNbZeroes(), leaf.getNbOnes()});
+      if (Gl_Xa <= GNullAttribute)
+        // then not splitting is better than splitting on Xa
+        return;
 
-    // Replace l by an internal node that splits on X_a
-    VfdtNode[] children = leaf.generateChildren(feature_Xa);
-    leaf.addChildren(feature_Xa, children);
+      // Replace l by an internal node that splits on X_a
+      VfdtNode[] children = leaf.generateChildren(feature_Xa);
+      leaf.addChildren(feature_Xa, children);
 
-    this.nbOfNodes += children.length;
+      this.nbOfNodes += children.length;
 
-    // For each class y k and each value x ij of each attribute X_i ∈ X_m − {X_∅}
-    // Let n_ijk(l_m) = 0.
-    // -> This is done when calling the constructor of VfdtNode in generateChildren
+      // For each class y k and each value x ij of each attribute X_i ∈ X_m − {X_∅}
+      // Let n_ijk(l_m) = 0.
+      // -> This is done when calling the constructor of VfdtNode in generateChildren
+    }
   }
 
   private double epsilon() {
@@ -126,15 +134,6 @@ public class Vfdt extends IncrementalLearner<Integer> {
     double R = Math.log(this.nbFeatureValues.length) / Math.log(2);
     double n = nbExamplesProcessed;
     return Math.sqrt((R * R * Math.log(1/delta)) / (2*n));
-  }
-
-  // Based on: https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/metrics/metrics.py#L12
-  private double nullAttributeSplitEval(VfdtNode node) {
-    // We know there's at least one one and one zero instance due to caller's if condition
-    double total = node.getNbOnes() + node.getNbZeroes();
-    double pOne = node.getNbOnes() / total;
-    double pZero = node.getNbZeroes() / total;
-    return 0;
   }
 
   @Deprecated

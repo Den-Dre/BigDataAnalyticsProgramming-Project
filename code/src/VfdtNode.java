@@ -22,7 +22,6 @@ public class VfdtNode {
   // AS IT DIDN'T RECOGNISE THE FOLLOWING VARIABLE
   private int nbSplits;
 
-
   /* FILL IN HERE */
 
   private int[] nbFeatureValues;
@@ -30,10 +29,8 @@ public class VfdtNode {
   private int nbZeroes = 0;
   private int[] childrenIds;
 
-
   /* self-added fields */
   private Label label;
-  private double GmX0;
   private int identifier = -1;
 
   /**
@@ -99,7 +96,7 @@ public class VfdtNode {
       return this;
     VfdtNode nextNode = children[example[splitFeature]];
     // TODO Need to convert to Integer[]... Can't this be done more efficiently?
-    Integer[] exampleConverted = Arrays.stream(nextNode.possibleSplitFeatures).boxed().toArray(Integer[]::new);
+//    Integer[] exampleConverted = Arrays.stream(nextNode.possibleSplitFeatures).boxed().toArray(Integer[]::new);
     return nextNode.sortExample(example);
   }
 
@@ -365,7 +362,7 @@ public class VfdtNode {
    * Increment the number of instances classified as one or zero
    * by one, dependent of the given class value.
    */
-  public void incrementCounts(int toAdd) {
+  public void incrementClassCounts(int toAdd) {
     if (toAdd == 1)
       this.nbOnes++;
     else if (toAdd == 0)

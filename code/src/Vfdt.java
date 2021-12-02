@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.IntStream;
 
 /** This class is a stub for VFDT. */
 public class Vfdt extends IncrementalLearner<Integer> {
@@ -67,10 +68,18 @@ public class Vfdt extends IncrementalLearner<Integer> {
       FILL IN HERE
     */
     VfdtNode leaf = root.sortExample(example.attributeValues);
+    int[] leafFeatures = leaf.getPossibleSplitFeatures();
     for (int i = 0; i < example.attributeValues.length; i++) {
-      // Increment n_ijk(l).
-      // TODO Every feature of the example should also be present in the features of `leaf`, right?
-      if (i < leaf.getNbFeatureValues().length)
+      // For each xij in x such that Xi ∈ Xl
+      //    Increment n_ijk(l).
+
+      // - Splitfeature van een parent van een leaf moet van de attributen van die leaf verwijderd zijn bij creatie
+      // - We incrementen enkel de attributen die zowel in de leaf als in het example zitten
+      // => split attributen van ouders van leaf mogen niet ge-increment worden!
+
+      // Can only use final variables in anyMatch lambda expression:
+      final int tempI = i;
+      if (IntStream.of(leafFeatures).anyMatch(f -> f == tempI))
         leaf.incrementNijk(i, example.attributeValues[i], example.classValue);
     }
 
@@ -106,16 +115,16 @@ public class Vfdt extends IncrementalLearner<Integer> {
       }
     }
 
-    double eps = epsilon();
+      double eps = epsilon();
     if (Gl_Xa - Gl_Xb > eps || eps < tau) {
       // Defer computation of G(X_∅) as long as possible
 
       // Based on: https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/metrics/metrics.py#L12
       // https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/model/vfdt.py#L86
-      double GNullAttribute = VfdtNode.classEntropy(new int[]{leaf.getNbZeroes(), leaf.getNbOnes()});
-//      if (Gl_Xa <= GNullAttribute)
-//        // then not splitting is better than splitting on Xa
-//        return;
+//      double GNullAttribute = VfdtNode.classEntropy(new int[]{leaf.getNbZeroes(), leaf.getNbOnes()});
+      if (Gl_Xa == 0)
+        // Then splitting on best attribute wouldn't increase information gain
+        return;
 
       // Replace l by an internal node that splits on X_a
       VfdtNode[] children = leaf.generateChildren(feature_Xa);
@@ -130,7 +139,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
   }
 
   private double epsilon() {
-    // TODO is this R correct? (should be: corrected now to use log2)
+    // TODO is this R correct? (should be: corrected now to use log2):
+    //  correct: confirmed in email
     double R = Math.log(this.nbFeatureValues.length) / Math.log(2);
     double n = nbExamplesProcessed;
     return Math.sqrt((R * R * Math.log(1/delta)) / (2*n));
@@ -172,6 +182,9 @@ public class Vfdt extends IncrementalLearner<Integer> {
       return 0.5;
     // TODO is this correct?
     //  (is conform with: https://datascience.stackexchange.com/questions/11171/decision-tree-how-to-understand-or-calculate-the-probability-confidence-of-pred)
+    //  should be as the incrementalLearner class asks for the prediction and then rounds this to 1 iff. the prediction
+    //  value is larger than a certain threshold. This is equivalent to the paper saying: label the leaf with the majority
+    //  class.'
     return (double) leaf.getNbOnes() / ((double) leaf.getNbOnes() + leaf.getNbZeroes());
   }
 

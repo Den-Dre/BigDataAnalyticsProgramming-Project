@@ -103,15 +103,19 @@ public class Vfdt extends IncrementalLearner<Integer> {
     double Gl_Xb = 0;
     int feature_Xa = 0;
     double currentGl;
-    // Assume nbOfAttributes(leaf) == nbOfAttributes(example):
+    // Compute Gl(Xi) for each attribute Xi ∈ Xl
     for (int i = 0; i < example.attributeValues.length; i++) {
-      currentGl = leaf.splitEval(i);
-      if (currentGl > Gl_Xa) {
-        Gl_Xb = Gl_Xa;
-        Gl_Xa = currentGl;
-        feature_Xa = i;
-      } else if(currentGl > Gl_Xb) {
-        Gl_Xb = currentGl;
+      final int tempI = i;
+      // Don't compute Gl(Xi) for the attributes of `example` on which leaf's parents have already split
+      if (IntStream.of(leafFeatures).anyMatch(f -> f == tempI)) {
+        currentGl = leaf.splitEval(i);
+        if (currentGl > Gl_Xa) {
+          Gl_Xb = Gl_Xa;
+          Gl_Xa = currentGl;
+          feature_Xa = i;
+        } else if (currentGl > Gl_Xb) {
+          Gl_Xb = currentGl;
+        }
       }
     }
 

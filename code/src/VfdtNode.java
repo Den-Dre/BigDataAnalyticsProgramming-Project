@@ -46,6 +46,13 @@ public class VfdtNode {
     this.nbFeatureValues = nbFeatureValues;
     this.children = null;
     this.nijk = new int[nbFeatureValues.length][][];
+
+    // this.nijk = new int[possibleSplitFeatures.length][][];
+    // Only keep counts for attributes still present in possibleSplitFeatures
+    // We keep the array of size `nbFeatureValues` s.t. its indexes can still be used as feature values indexes
+    // => this idea is not possible to implement due to the static type of the informationGain method
+
+//    for (int i : possibleSplitFeatures) {
     for (int i = 0; i < nijk.length; i++) {
       this.nijk[i] = new int[nbFeatureValues[i]][2];
     }

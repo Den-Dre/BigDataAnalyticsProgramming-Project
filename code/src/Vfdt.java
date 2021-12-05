@@ -127,6 +127,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
       // https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/model/vfdt.py#L86
 //      double GNullAttribute = VfdtNode.classEntropy(new int[]{leaf.getNbZeroes(), leaf.getNbOnes()});
       if (Gl_Xa == 0)
+        // Xa == X∅
         // Then splitting on best attribute wouldn't increase information gain
         return;
 

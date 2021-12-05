@@ -4,6 +4,7 @@
  */
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 /** This class is a stub for VFDT. */
 public class VfdtNode {
@@ -54,7 +55,16 @@ public class VfdtNode {
 
 //    for (int i : possibleSplitFeatures) {
     for (int i = 0; i < nijk.length; i++) {
-      this.nijk[i] = new int[nbFeatureValues[i]][2];
+      final int tempI = i;
+      if (IntStream.of(possibleSplitFeatures).anyMatch(f -> f == tempI))
+        this.nijk[i] = new int[nbFeatureValues[i]][2];
+      else
+        // This feature has already been split on in one of this node's parents
+        // thus, only one value of this feature will appear in the examples sorted to this node
+        // -> No need to track counts
+        // (We will need to keep an entry for this feature in nijk in order to be able to keep using
+        //  indexes as feature id's)
+        this.nijk[i] = null;
     }
     /* FILL IN HERE */
     this.label = Label.UNLABELED;
@@ -108,6 +118,8 @@ public class VfdtNode {
   }
 
   protected VfdtNode[] generateChildren(int X_a) {
+    if (IntStream.of(possibleSplitFeatures).noneMatch(f -> f == X_a))
+      return null;
     // Add a new leaf l_m , and let X_m = X − {X_a}
     VfdtNode[] children = new VfdtNode[nbFeatureValues[X_a]];
 
@@ -180,6 +192,7 @@ public class VfdtNode {
     // We also hold count of the nb of ones and zeros in non static fields,
     // but the information gain method header was given to be static...
     for (int i = 0; i < nijk.length; i++) {       // Over all possible features...
+      if (nijk[i] == null) continue; // skip features that have already been split on
       for (int j = 0; j < nijk[i].length; j++) {  // ... find all instances classified as one and zero
         nbOnes += nijk[i][j][1];
         nbZeroes += nijk[i][j][0];

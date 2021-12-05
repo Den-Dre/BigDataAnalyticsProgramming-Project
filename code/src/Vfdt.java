@@ -77,8 +77,6 @@ public class Vfdt extends IncrementalLearner<Integer> {
       // - Splitfeature van een parent van een leaf moet van de attributen van die leaf verwijderd zijn bij creatie
       // - We incrementen enkel de attributen die zowel in de leaf als in het example zitten
       // => split attributen van ouders van leaf mogen niet ge-increment worden!
-
-      // Can only use final variables in anyMatch lambda expression:
       if (featureList.contains(i))
         leaf.incrementNijk(i, example.attributeValues[i], example.classValue);
     }
@@ -86,7 +84,6 @@ public class Vfdt extends IncrementalLearner<Integer> {
     // Label l with the majority class among the examples
     // seen so far at l.
     leaf.incrementClassCounts(example.classValue);
-    leaf.updateLabel();
 
     // Limit number of G computations
     if (nbExamplesProcessed % nmin != 0)
@@ -143,28 +140,9 @@ public class Vfdt extends IncrementalLearner<Integer> {
   }
 
   private double epsilon() {
-    // TODO is this R correct? (should be: corrected now to use log2):
-    //  correct: confirmed in email
     double R = Math.log(this.nbFeatureValues.length) / Math.log(2);
     double n = nbExamplesProcessed;
     return Math.sqrt((R * R * Math.log(1/delta)) / (2*n));
-  }
-
-  @Deprecated
-  private VfdtNode[] generateChildren(int X_a) {
-    // Add a new leaf l_m , and let X_m = X − {X_a}
-    VfdtNode[] children = new VfdtNode[nbFeatureValues[X_a]];
-    int[] newNbFeatureValues = nbFeatureValues.clone();
-    newNbFeatureValues[X_a] = 1;
-    int[] newPossibleSplitFeatures = Arrays.stream(root.getPossibleSplitFeatures().clone()).filter(f -> f != X_a).toArray();
-    for (int i = 0; i < children.length; i++) {
-      // Need to create a new VfdtNode instance for each i in order to prevent reference semantic side effects
-      children[i] = new VfdtNode(newNbFeatureValues.clone(), newPossibleSplitFeatures.clone());
-    }
-
-    // Update size of HT
-    this.nbOfNodes += children.length;
-    return children;
   }
 
   /**

@@ -4,6 +4,7 @@
  */
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /** This class is a stub for VFDT. */
@@ -54,9 +55,9 @@ public class VfdtNode {
     // => this idea is not possible to implement due to the static type of the informationGain method
 
 //    for (int i : possibleSplitFeatures) {
+    List<Integer> list = Arrays.stream(possibleSplitFeatures).boxed().collect(Collectors.toList());
     for (int i = 0; i < nijk.length; i++) {
-      final int tempI = i;
-      if (IntStream.of(possibleSplitFeatures).anyMatch(f -> f == tempI))
+      if (list.contains(i))
         this.nijk[i] = new int[nbFeatureValues[i]][2];
       else
         // This feature has already been split on in one of this node's parents

@@ -11,7 +11,7 @@ import java.io.FileNotFoundException;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
 
 /** This class is a stub for VFDT. */
 public class Vfdt extends IncrementalLearner<Integer> {
@@ -69,6 +69,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
     */
     VfdtNode leaf = root.sortExample(example.attributeValues);
     int[] leafFeatures = leaf.getPossibleSplitFeatures();
+    List<Integer> featureList = Arrays.stream(leafFeatures).boxed().collect(Collectors.toList());
     for (int i = 0; i < example.attributeValues.length; i++) {
       // For each xij in x such that Xi ∈ Xl
       //    Increment n_ijk(l).
@@ -78,8 +79,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
       // => split attributen van ouders van leaf mogen niet ge-increment worden!
 
       // Can only use final variables in anyMatch lambda expression:
-      final int tempI = i;
-      if (IntStream.of(leafFeatures).anyMatch(f -> f == tempI))
+      if (featureList.contains(i))
         leaf.incrementNijk(i, example.attributeValues[i], example.classValue);
     }
 
@@ -105,9 +105,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
     double currentGl;
     // Compute Gl(Xi) for each attribute Xi ∈ Xl
     for (int i = 0; i < example.attributeValues.length; i++) {
-      final int tempI = i;
       // Don't compute Gl(Xi) for the attributes of `example` on which leaf's parents have already split
-      if (IntStream.of(leafFeatures).anyMatch(f -> f == tempI)) {
+      if (featureList.contains(i)) {
         currentGl = leaf.splitEval(i);
         if (currentGl > Gl_Xa) {
           Gl_Xb = Gl_Xa;

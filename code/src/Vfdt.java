@@ -223,6 +223,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
       outputBuilder.append("] nijk:[");
       int[][][] nijk = leaf.getNijk();
       for (int i = 0; i < nijk.length; i++) {
+        if (nijk[i] == null) continue;
         for (int j = 0; j < nijk[i].length; j++) {
           for (int k = 0; k <= 1; k++) {
             outputBuilder

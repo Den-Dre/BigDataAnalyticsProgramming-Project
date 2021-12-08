@@ -3,9 +3,11 @@
  * without permission. Written by Pieter Robberechts, 2021
  */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /** This class is a stub for VFDT. */
 public class VfdtNode {
@@ -52,9 +54,9 @@ public class VfdtNode {
     // We keep the array of size `nbFeatureValues` s.t. its indexes can still be used as feature values indexes
     // => this idea is not possible to implement due to the static type of the informationGain method
 
-    List<Integer> list = Arrays.stream(possibleSplitFeatures).boxed().collect(Collectors.toList());
+    List<Integer> splitFeatures = Arrays.stream(possibleSplitFeatures).boxed().collect(Collectors.toList());
     for (int i = 0; i < nijk.length; i++) {
-      if (list.contains(i))
+      if (splitFeatures.contains(i))
         this.nijk[i] = new int[nbFeatureValues[i]][2];
       else
         // This feature has already been split on in one of this node's parents
@@ -100,14 +102,17 @@ public class VfdtNode {
   }
 
   protected VfdtNode[] generateChildren(int X_a) {
-    if (IntStream.of(possibleSplitFeatures).noneMatch(f -> f == X_a))
-      return null;
+    // This check should always be false:
+//    if (IntStream.of(possibleSplitFeatures).noneMatch(f -> f == X_a))
+//      return null;
+
     // Add a new leaf l_m , and let X_m = X − {X_a}
     VfdtNode[] children = new VfdtNode[nbFeatureValues[X_a]];
 
     // Only one value possible of attribute X_a for this leaf
     int[] newNbFeatureValues = nbFeatureValues;
-//    newNbFeatureValues[X_a] = 1;
+    // newNbFeatureValues[X_a] = 1;
+    // -> This is handled in the VfdtNode constructor when setting up the nijk array
 
     // This leaf can no longer split on feature X_a
     int[] newPossibleSplitFeatures = Arrays.stream(possibleSplitFeatures.clone()).filter(f -> f != X_a).toArray();
@@ -173,11 +178,11 @@ public class VfdtNode {
     // TODO can this be done more efficiently?
     // We also hold count of the nb of ones and zeros in non static fields,
     // but the information gain method header was given to be static...
-    for (int i = 0; i < nijk.length; i++) {       // Over all possible features...
-      if (nijk[i] == null) continue; // skip features that have already been split on
-      for (int j = 0; j < nijk[i].length; j++) {  // ... find all instances classified as one and zero
-        nbOnes += nijk[i][j][1];
-        nbZeroes += nijk[i][j][0];
+    for (int[][] feature : nijk) {       // Over all possible features...
+      if (feature == null) continue; // skip features that have already been split on
+      for (int[] featureValue : feature) {  // ... find all instances classified as one and zero
+        nbOnes += featureValue[1];
+        nbZeroes += featureValue[0];
       }
     }
 

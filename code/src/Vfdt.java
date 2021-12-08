@@ -68,8 +68,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
       FILL IN HERE
     */
     VfdtNode leaf = root.sortExample(example.attributeValues);
-    int[] leafFeatures = leaf.getPossibleSplitFeatures();
-    List<Integer> featureList = Arrays.stream(leafFeatures).boxed().collect(Collectors.toList());
+    int[] splitFeaturesArr = leaf.getPossibleSplitFeatures();
+    List<Integer> splitFeatures = Arrays.stream(splitFeaturesArr).boxed().collect(Collectors.toList());
     for (int i = 0; i < example.attributeValues.length; i++) {
       // For each xij in x such that Xi ∈ Xl
       //    Increment n_ijk(l).
@@ -77,12 +77,14 @@ public class Vfdt extends IncrementalLearner<Integer> {
       // - Splitfeature van een parent van een leaf moet van de attributen van die leaf verwijderd zijn bij creatie
       // - We incrementen enkel de attributen die zowel in de leaf als in het example zitten
       // => split attributen van ouders van leaf mogen niet ge-increment worden!
-      if (featureList.contains(i))
+      if (splitFeatures.contains(i))
         leaf.incrementNijk(i, example.attributeValues[i], example.classValue);
     }
 
     // Label l with the majority class among the examples
     // seen so far at l.
+
+    // Update number of times examples of this class have been seen
     leaf.incrementClassCounts(example.classValue);
 
     // Limit number of G computations
@@ -103,7 +105,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
     // Compute Gl(Xi) for each attribute Xi ∈ Xl
     for (int i = 0; i < example.attributeValues.length; i++) {
       // Don't compute Gl(Xi) for the attributes of `example` on which leaf's parents have already split
-      if (featureList.contains(i)) {
+      if (splitFeatures.contains(i)) {
         currentGl = leaf.splitEval(i);
         if (currentGl > Gl_Xa) {
           Gl_Xb = Gl_Xa;
@@ -115,9 +117,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
       }
     }
 
-      double eps = epsilon();
+    double eps = epsilon();
     if (Gl_Xa - Gl_Xb > eps || eps < tau) {
-      // Defer computation of G(X_∅) as long as possible
 
       // Based on: https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/metrics/metrics.py#L12
       // https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/model/vfdt.py#L86
@@ -133,16 +134,17 @@ public class Vfdt extends IncrementalLearner<Integer> {
 
       this.nbOfNodes += children.length;
 
-      // For each class y k and each value x ij of each attribute X_i ∈ X_m − {X_∅}
+      // For each class y_k and each value x_ij of each attribute X_i ∈ X_m − {X_∅}
       // Let n_ijk(l_m) = 0.
       // -> This is done when calling the constructor of VfdtNode in generateChildren
     }
   }
 
   private double epsilon() {
-    double R = Math.log(this.nbFeatureValues.length) / Math.log(2);
+//    double R = Math.log(this.nbFeatureValues.length) / Math.log(2);
+    double R = 1; // log2(2) == 1
     double n = nbExamplesProcessed;
-    return Math.sqrt((R * R * Math.log(1/delta)) / (2*n));
+    return Math.sqrt((Math.log(1/delta)) / (2*n));
   }
 
   /**

@@ -115,7 +115,7 @@ public class VfdtNode {
     // -> This is handled in the VfdtNode constructor when setting up the nijk array
 
     // This leaf can no longer split on feature X_a
-    int[] newPossibleSplitFeatures = Arrays.stream(possibleSplitFeatures.clone()).filter(f -> f != X_a).toArray();
+    int[] newPossibleSplitFeatures = Arrays.stream(possibleSplitFeatures).filter(f -> f != X_a).toArray().clone();
 
     // Create the children
     for (int i = 0; i < children.length; i++)
@@ -164,7 +164,7 @@ public class VfdtNode {
       zeroes = nijk[featureId][v][0];
       ones   = nijk[featureId][v][1];
       Si     = zeroes + ones;
-      ig    -= (Si / S) * classEntropy(nijk[featureId][v], Si);
+      ig    -= (Si / S) * classEntropy(Si, ones, zeroes);
     }
     return ig;
   }
@@ -178,12 +178,17 @@ public class VfdtNode {
     // TODO can this be done more efficiently?
     // We also hold count of the nb of ones and zeros in non static fields,
     // but the information gain method header was given to be static...
+    // More efficient: calculate the number of seen ones and zeros based on the
+    // first non-null entry in nijk[][]: this feature contains a one or zero for
+    // every example that has been processed by this leaf.
+    // -> No need to iterate over all leaves (this gives possibleSplitFeatures.length * nbOnes instead)
     for (int[][] feature : nijk) {       // Over all possible features...
       if (feature == null) continue; // skip features that have already been split on
       for (int[] featureValue : feature) {  // ... find all instances classified as one and zero
         nbOnes += featureValue[1];
         nbZeroes += featureValue[0];
       }
+      break;
     }
 
     double S = (double) nbOnes + nbZeroes;
@@ -191,17 +196,16 @@ public class VfdtNode {
       return new double[] {0.0, S};
     double p0 = (double) nbZeroes / S;
     double p1 = (double) nbOnes / S;
-    return new double[] {- (p0 * Math.log(p0) / Math.log(2) + p1 * Math.log(p1) / Math.log(2)),
-            S / (double) nijk.length};
+    return new double[] {- (p0 * Math.log(p0) / Math.log(2) + p1 * Math.log(p1) / Math.log(2)), S};
   }
 
   // Functions correctly
-  private static double classEntropy(int[] nk, double Si) {
+  private static double classEntropy(double Si, double ones, double zeroes) {
     // Calculate Class entropy for values of feature i
     if (Si == 0.0)
       return 1.0;
-    double p0i = (double) nk[0] / Si;
-    double p1i = (double) nk[1] / Si;
+    double p0i = zeroes / Si;
+    double p1i = ones / Si;
     double result = -(p0i * Math.log(p0i) / Math.log(2) + p1i * Math.log(p1i) / Math.log(2));
     return Double.isNaN(result) ? 0.0 : result;
   }

@@ -144,7 +144,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
 //    double R = Math.log(this.nbFeatureValues.length) / Math.log(2);
     double R = 1; // log2(2) == 1
     double n = nbExamplesProcessed;
-    return Math.sqrt((Math.log(1/delta)) / (2*n));
+    return Math.sqrt(Math.log(1/delta) / (2*n));
   }
 
   /**
@@ -164,6 +164,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
     VfdtNode leaf = root.sortExample(example);
     if (root.getChildren() == null) // Based on the second test in VfdtSanityChecks.java
       return 0.5;
+//    if (leaf.getNbZeroes() == 0 && leaf.getNbOnes() == 0)
+//      return 0.5;
     // TODO is this correct?
     //  (is conform with: https://datascience.stackexchange.com/questions/11171/decision-tree-how-to-understand-or-calculate-the-probability-confidence-of-pred)
     //  should be as the incrementalLearner class asks for the prediction and then rounds this to 1 iff. the prediction

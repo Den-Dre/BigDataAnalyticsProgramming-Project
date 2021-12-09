@@ -88,7 +88,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
     leaf.incrementClassCounts(example.classValue);
 
     // Limit number of G computations
-    if (nbExamplesProcessed % nmin != 0)
+    if (leaf.getNbExamplesProcessed() % nmin != 0)
       return;
 
     // If the examples seen so far at l are not all of the same
@@ -117,7 +117,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
       }
     }
 
-    double eps = epsilon();
+    double eps = epsilon(leaf.getNbExamplesProcessed());
     if (Gl_Xa - Gl_Xb > eps || eps < tau) {
 
       // Based on: https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/metrics/metrics.py#L12
@@ -140,10 +140,11 @@ public class Vfdt extends IncrementalLearner<Integer> {
     }
   }
 
-  private double epsilon() {
+  private double epsilon(double n) {
 //    double R = Math.log(this.nbFeatureValues.length) / Math.log(2);
     double R = 1; // log2(2) == 1
-    double n = nbExamplesProcessed;
+    // Use number of instances processed in this leaf only, rather than in entire VFDT!
+//    double n = nbExamplesProcessed;
     return Math.sqrt(Math.log(1/delta) / (2*n));
   }
 

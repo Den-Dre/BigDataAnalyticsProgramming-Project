@@ -30,6 +30,7 @@ public class VfdtNode {
   private int[] nbFeatureValues;
   private int nbOnes = 0;
   private int nbZeroes = 0;
+  private int nbExamplesProcessed = 0;
   private int[] childrenIds;
 
   /* self-added fields */
@@ -294,6 +295,10 @@ public class VfdtNode {
     return nbZeroes;
   }
 
+  public int getNbExamplesProcessed() {
+    return nbExamplesProcessed;
+  }
+
   /**
    * Increment the number of instances classified as one or zero
    * by one, dependent of the given class value.
@@ -305,6 +310,7 @@ public class VfdtNode {
       this.nbZeroes++;
     else
       throw new IllegalArgumentException("Class value must be 0 or 1");
+    this.nbExamplesProcessed++;
   }
 
   /**

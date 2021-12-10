@@ -2,16 +2,10 @@
  * Copyright (c) DTAI - KU Leuven – All rights reserved. Proprietary, do not copy or distribute
  * without permission. Written by Pieter Robberechts, 2021
  */
-import java.io.IOException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 
+import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 /** This class is a stub for VFDT. */
 public class Vfdt extends IncrementalLearner<Integer> {
@@ -69,20 +63,11 @@ public class Vfdt extends IncrementalLearner<Integer> {
       FILL IN HERE
     */
     VfdtNode leaf = root.sortExample(example.attributeValues);
-//    List<Integer> leafSplitFeatures = Arrays.stream(leaf.getPossibleSplitFeatures()).boxed().collect(Collectors.toList());
-//    List<Integer> leafSplitFeatures = leaf.getLeafSplitFeatures();
     for (int feature : leaf.getPossibleSplitFeatures()) {
       // For each xij in x such that Xi ∈ Xl
       //    Increment n_ijk(l).
-
-      // - Splitfeature van een parent van een leaf moet van de attributen van die leaf verwijderd zijn bij creatie
-      // - We incrementen enkel de attributen die zowel in de leaf als in het example zitten
-      // => split attributen van ouders van leaf mogen niet ge-increment worden!
         leaf.incrementNijk(feature, example.attributeValues[feature], example.classValue);
     }
-
-    // Label l with the majority class among the examples
-    // seen so far at l.
 
     // Update number of times examples of this class have been seen
     leaf.incrementClassCounts(example.classValue);
@@ -104,8 +89,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
     double currentGl;
     // Compute Gl(Xi) for each attribute Xi ∈ Xl
     for (int feature : leaf.getPossibleSplitFeatures()) {
-      // Don't compute Gl(Xi) for the attributes of `example` on which leaf's parents have already split
-//      if (MyUtil.containsValue(leaf.getPossibleSplitFeatures(), i)) {
+      // Only compute Gl(Xi) for the attributes of `example` on which leaf's parents haven't already split
         currentGl = leaf.splitEval(feature);
         if (currentGl > Gl_Xa) {
           Gl_Xb = Gl_Xa;
@@ -114,17 +98,13 @@ public class Vfdt extends IncrementalLearner<Integer> {
         } else if (currentGl > Gl_Xb) {
           Gl_Xb = currentGl;
         }
-//      }
     }
 
     double eps = epsilon(leaf.getNbExamplesProcessed());
     if (Gl_Xa - Gl_Xb > eps || eps < tau) {
 
-      // Based on: https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/metrics/metrics.py#L12
-      // https://github.com/liqi17thu/incremental_decision_tree/blob/8938be407dfda4b73a2cab04e686f51ec405f1e0/model/vfdt.py#L86
-//      double GNullAttribute = VfdtNode.classEntropy(new int[]{leaf.getNbZeroes(), leaf.getNbOnes()});
-      if (Gl_Xa == 0)
-        // Xa == X∅
+      if (Gl_Xa == 0) // minimum value of Information Gain
+        // -> Xa == X∅
         // Then splitting on best attribute wouldn't increase information gain
         return;
 
@@ -142,10 +122,8 @@ public class Vfdt extends IncrementalLearner<Integer> {
   }
 
   private double epsilon(double n) {
-//    double R = Math.log(this.nbFeatureValues.length) / Math.log(2);
-    double R = 1; // log2(2) == 1
+    // R := log2(#classes) = log2(2) = 1
     // Use number of instances processed in this leaf only, rather than in entire VFDT!
-//    double n = nbExamplesProcessed;
     return Math.sqrt(Math.log(1/delta) / (2*n));
   }
 
@@ -166,13 +144,11 @@ public class Vfdt extends IncrementalLearner<Integer> {
     if (nbExamplesProcessed == 0)
       return 0.5;
     VfdtNode leaf = root.sortExample(example);
-//    if (root.getChildren() == null) // Based on the second test in VfdtSanityChecks.java
-//      return 0.5;
     // TODO is this correct?
     //  (is conform with: https://datascience.stackexchange.com/questions/11171/decision-tree-how-to-understand-or-calculate-the-probability-confidence-of-pred)
-    //  should be as the incrementalLearner class asks for the prediction and then rounds this to 1 iff. the prediction
-    //  value is larger than a certain threshold. This is equivalent to the paper saying: label the leaf with the majority
-    //  class.'
+    //  Should be, as the incrementalLearner class asks for the prediction and then rounds this to 1 iff. the prediction
+    //  value is larger than a certain threshold (0.5). This is equivalent to the paper saying: label the leaf with the
+    //  majority class.'
     return (double) leaf.getNbOnes() / ((double) leaf.getNbOnes() + leaf.getNbZeroes());
   }
 

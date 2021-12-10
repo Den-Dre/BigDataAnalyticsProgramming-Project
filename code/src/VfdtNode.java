@@ -3,15 +3,17 @@
  * without permission. Written by Pieter Robberechts, 2021
  */
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 /** This class is a stub for VFDT. */
 public class VfdtNode {
 
   private VfdtNode[] children; /* child children (null if node is a leaf) */
 
-  private final int[] possibleSplitFeatures; /* The features that this node can split on */
+  private int[] possibleSplitFeatures; /* The features that this node can split on */
 
   private int splitFeature; /* splitting feature */
 
@@ -24,14 +26,13 @@ public class VfdtNode {
 
   /* FILL IN HERE */
 
-  private int[] nbFeatureValues;
+  private final int[] nbFeatureValues;
+
+  /* self-added fields */
   private int nbOnes = 0;
   private int nbZeroes = 0;
   private int nbExamplesProcessed = 0;
   private int[] childrenIds;
-//  private List<Integer> leafSplitFeatures;
-
-  /* self-added fields */
   private int identifier = -1;
 
   /**
@@ -47,8 +48,6 @@ public class VfdtNode {
     this.nbFeatureValues = nbFeatureValues;
     this.children = null;
     this.nijk = new int[nbFeatureValues.length][][];
-//    this.leafSplitFeatures = new HashSet<>(Arrays.asList(Arrays.stream(possibleSplitFeatures).boxed().toArray(Integer[]::new)));
-//    this.leafSplitFeatures = Arrays.stream(possibleSplitFeatures).boxed().collect(Collectors.toList());
 
     // this.nijk = new int[possibleSplitFeatures.length][][];
     // Only keep counts for attributes still present in possibleSplitFeatures
@@ -95,32 +94,20 @@ public class VfdtNode {
     VfdtNode nextNode = this;
     while (nextNode.children != null)
       nextNode = nextNode.children[example[nextNode.getSplitFeature()]];
-//    if (this.children == null)
-//      return this;
-//    VfdtNode nextNode = children[example[splitFeature]];
-//    return nextNode.sortExample(example);
     return nextNode;
   }
 
   protected VfdtNode[] generateChildren(int X_a) {
-    // This check should always be false:
-//    if (IntStream.of(possibleSplitFeatures).noneMatch(f -> f == X_a))
-//      return null;
-
-    // For each branch of the split, add a new leaf l_m, ...
+    // For each branch of the split, ...
     VfdtNode[] children = new VfdtNode[nbFeatureValues[X_a]];
 
-    // ... and let X_m = X − {X_a}
     // This leaf can no longer split on feature X_a
     // No need to clone as `toArray` returns a new array object (?)
     int[] newPossibleSplitFeatures = Arrays.stream(possibleSplitFeatures).filter(f -> f != X_a).toArray();
 
-    // int[] newNbFeatureValues = nbFeatureValues;
-    // newNbFeatureValues[X_a] = 1;
-    // -> This is handled in the VfdtNode constructor when setting up the nijk array
-
     // Create the children
     for (int i = 0; i < children.length; i++)
+      // ... add a new leaf l_m and let X_m = X − {X_a}
       children[i] = new VfdtNode(nbFeatureValues, newPossibleSplitFeatures);
 
     return children;

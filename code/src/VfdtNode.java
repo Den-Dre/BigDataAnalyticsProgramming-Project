@@ -112,7 +112,8 @@ public class VfdtNode {
 
     // ... and let X_m = X − {X_a}
     // This leaf can no longer split on feature X_a
-    int[] newPossibleSplitFeatures = Arrays.stream(possibleSplitFeatures).filter(f -> f != X_a).toArray().clone();
+    // No need to clone as `toArray` returns a new array object (?)
+    int[] newPossibleSplitFeatures = Arrays.stream(possibleSplitFeatures).filter(f -> f != X_a).toArray();
 
     // int[] newNbFeatureValues = nbFeatureValues;
     // newNbFeatureValues[X_a] = 1;

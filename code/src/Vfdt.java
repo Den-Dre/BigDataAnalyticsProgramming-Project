@@ -69,16 +69,16 @@ public class Vfdt extends IncrementalLearner<Integer> {
       FILL IN HERE
     */
     VfdtNode leaf = root.sortExample(example.attributeValues);
-    List<Integer> leafSplitFeatures = Arrays.stream(leaf.getPossibleSplitFeatures()).boxed().collect(Collectors.toList());
-    for (int i = 0; i < example.attributeValues.length; i++) {
+//    List<Integer> leafSplitFeatures = Arrays.stream(leaf.getPossibleSplitFeatures()).boxed().collect(Collectors.toList());
+//    List<Integer> leafSplitFeatures = leaf.getLeafSplitFeatures();
+    for (int feature : leaf.getPossibleSplitFeatures()) {
       // For each xij in x such that Xi ∈ Xl
       //    Increment n_ijk(l).
 
       // - Splitfeature van een parent van een leaf moet van de attributen van die leaf verwijderd zijn bij creatie
       // - We incrementen enkel de attributen die zowel in de leaf als in het example zitten
       // => split attributen van ouders van leaf mogen niet ge-increment worden!
-      if (leafSplitFeatures.contains(i))
-        leaf.incrementNijk(i, example.attributeValues[i], example.classValue);
+        leaf.incrementNijk(feature, example.attributeValues[feature], example.classValue);
     }
 
     // Label l with the majority class among the examples
@@ -103,18 +103,18 @@ public class Vfdt extends IncrementalLearner<Integer> {
     int feature_Xa = 0;
     double currentGl;
     // Compute Gl(Xi) for each attribute Xi ∈ Xl
-    for (int i = 0; i < example.attributeValues.length; i++) {
+    for (int feature : leaf.getPossibleSplitFeatures()) {
       // Don't compute Gl(Xi) for the attributes of `example` on which leaf's parents have already split
-      if (leafSplitFeatures.contains(i)) {
-        currentGl = leaf.splitEval(i);
+//      if (MyUtil.containsValue(leaf.getPossibleSplitFeatures(), i)) {
+        currentGl = leaf.splitEval(feature);
         if (currentGl > Gl_Xa) {
           Gl_Xb = Gl_Xa;
           Gl_Xa = currentGl;
-          feature_Xa = i;
+          feature_Xa = feature;
         } else if (currentGl > Gl_Xb) {
           Gl_Xb = currentGl;
         }
-      }
+//      }
     }
 
     double eps = epsilon(leaf.getNbExamplesProcessed());

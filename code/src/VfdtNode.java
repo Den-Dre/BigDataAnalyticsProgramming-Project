@@ -3,10 +3,7 @@
  * without permission. Written by Pieter Robberechts, 2021
  */
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /** This class is a stub for VFDT. */
@@ -32,6 +29,7 @@ public class VfdtNode {
   private int nbZeroes = 0;
   private int nbExamplesProcessed = 0;
   private int[] childrenIds;
+//  private List<Integer> leafSplitFeatures;
 
   /* self-added fields */
   private int identifier = -1;
@@ -49,23 +47,21 @@ public class VfdtNode {
     this.nbFeatureValues = nbFeatureValues;
     this.children = null;
     this.nijk = new int[nbFeatureValues.length][][];
+//    this.leafSplitFeatures = new HashSet<>(Arrays.asList(Arrays.stream(possibleSplitFeatures).boxed().toArray(Integer[]::new)));
+//    this.leafSplitFeatures = Arrays.stream(possibleSplitFeatures).boxed().collect(Collectors.toList());
 
     // this.nijk = new int[possibleSplitFeatures.length][][];
     // Only keep counts for attributes still present in possibleSplitFeatures
     // We keep the array of size `nbFeatureValues` s.t. its indexes can still be used as feature values indexes
     // => this idea is not possible to implement due to the static type of the informationGain method
 
-    List<Integer> splitFeatures = Arrays.stream(possibleSplitFeatures).boxed().collect(Collectors.toList());
-    for (int i = 0; i < nijk.length; i++) {
-      if (splitFeatures.contains(i))
-        this.nijk[i] = new int[nbFeatureValues[i]][2];
-      else
+    for (int feature : possibleSplitFeatures) {
+        this.nijk[feature] = new int[nbFeatureValues[feature]][2];
         // This feature has already been split on in one of this node's parents
         // thus, only one value of this feature will appear in the examples sorted to this node
         // -> No need to track counts
         // (We will need to keep an entry for this feature in nijk in order to be able to keep using
         //  indexes as feature id's)
-        this.nijk[i] = null;
     }
   }
 
@@ -392,6 +388,10 @@ public class VfdtNode {
   public void setSplitFeature(int f) {
     this.splitFeature = f;
   }
+
+//  public List<Integer> getLeafSplitFeatures() {
+//    return this.leafSplitFeatures;
+//  }
 
   /**
    * Return the visualization of the tree.

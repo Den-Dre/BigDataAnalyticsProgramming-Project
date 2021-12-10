@@ -96,10 +96,14 @@ public class VfdtNode {
    */
   public VfdtNode sortExample(Integer[] example) {
     /* FILL IN HERE */
-    if (this.children == null)
-      return this;
-    VfdtNode nextNode = children[example[splitFeature]];
-    return nextNode.sortExample(example);
+    VfdtNode nextNode = this;
+    while (nextNode.children != null)
+      nextNode = nextNode.children[example[nextNode.getSplitFeature()]];
+//    if (this.children == null)
+//      return this;
+//    VfdtNode nextNode = children[example[splitFeature]];
+//    return nextNode.sortExample(example);
+    return nextNode;
   }
 
   protected VfdtNode[] generateChildren(int X_a) {
@@ -107,20 +111,20 @@ public class VfdtNode {
 //    if (IntStream.of(possibleSplitFeatures).noneMatch(f -> f == X_a))
 //      return null;
 
-    // Add a new leaf l_m , and let X_m = X − {X_a}
+    // For each branch of the split, add a new leaf l_m, ...
     VfdtNode[] children = new VfdtNode[nbFeatureValues[X_a]];
 
-    // Only one value possible of attribute X_a for this leaf
-    int[] newNbFeatureValues = nbFeatureValues;
-    // newNbFeatureValues[X_a] = 1;
-    // -> This is handled in the VfdtNode constructor when setting up the nijk array
-
+    // ... and let X_m = X − {X_a}
     // This leaf can no longer split on feature X_a
     int[] newPossibleSplitFeatures = Arrays.stream(possibleSplitFeatures).filter(f -> f != X_a).toArray().clone();
 
+    // int[] newNbFeatureValues = nbFeatureValues;
+    // newNbFeatureValues[X_a] = 1;
+    // -> This is handled in the VfdtNode constructor when setting up the nijk array
+
     // Create the children
     for (int i = 0; i < children.length; i++)
-      children[i] = new VfdtNode(newNbFeatureValues, newPossibleSplitFeatures);
+      children[i] = new VfdtNode(nbFeatureValues, newPossibleSplitFeatures);
 
     return children;
   }
@@ -264,6 +268,13 @@ public class VfdtNode {
     return nodes;
   }
 
+  /**
+   * Get a String representation of
+   * this VfdtNode
+   *
+   * @return string: a String representation
+   *  of this VfdtNode
+   */
   @Override
   public String toString() {
     return "VfdtNode <" +
@@ -295,6 +306,14 @@ public class VfdtNode {
     return nbZeroes;
   }
 
+  /**
+   * Get the number of examples that have been
+   * processed by this leaf node. This is equal
+   * to {@code this.nbZeroes + this.nbOnes}
+   *
+   * @return nbExamplesProcessed Get the number of examples that have been
+   *    processed by this leaf node.
+   */
   public int getNbExamplesProcessed() {
     return nbExamplesProcessed;
   }

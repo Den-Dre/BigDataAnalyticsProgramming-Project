@@ -25,6 +25,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
 
   /* self-added attributes */
   private int nbOfNodes;
+  private int nbOfSplits;
 
   /**
    * Vfdt constructor
@@ -68,8 +69,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
       FILL IN HERE
     */
     VfdtNode leaf = root.sortExample(example.attributeValues);
-    int[] splitFeaturesArr = leaf.getPossibleSplitFeatures();
-    List<Integer> splitFeatures = Arrays.stream(splitFeaturesArr).boxed().collect(Collectors.toList());
+    List<Integer> leafSplitFeatures = Arrays.stream(leaf.getPossibleSplitFeatures()).boxed().collect(Collectors.toList());
     for (int i = 0; i < example.attributeValues.length; i++) {
       // For each xij in x such that Xi ∈ Xl
       //    Increment n_ijk(l).
@@ -77,7 +77,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
       // - Splitfeature van een parent van een leaf moet van de attributen van die leaf verwijderd zijn bij creatie
       // - We incrementen enkel de attributen die zowel in de leaf als in het example zitten
       // => split attributen van ouders van leaf mogen niet ge-increment worden!
-      if (splitFeatures.contains(i))
+      if (leafSplitFeatures.contains(i))
         leaf.incrementNijk(i, example.attributeValues[i], example.classValue);
     }
 
@@ -105,7 +105,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
     // Compute Gl(Xi) for each attribute Xi ∈ Xl
     for (int i = 0; i < example.attributeValues.length; i++) {
       // Don't compute Gl(Xi) for the attributes of `example` on which leaf's parents have already split
-      if (splitFeatures.contains(i)) {
+      if (leafSplitFeatures.contains(i)) {
         currentGl = leaf.splitEval(i);
         if (currentGl > Gl_Xa) {
           Gl_Xb = Gl_Xa;
@@ -133,6 +133,7 @@ public class Vfdt extends IncrementalLearner<Integer> {
       leaf.addChildren(feature_Xa, children);
 
       this.nbOfNodes += children.length;
+      this.nbOfSplits++;
 
       // For each class y_k and each value x_ij of each attribute X_i ∈ X_m − {X_∅}
       // Let n_ijk(l_m) = 0.
@@ -162,10 +163,10 @@ public class Vfdt extends IncrementalLearner<Integer> {
     /*
       FILL IN HERE
     */
-    VfdtNode leaf = root.sortExample(example);
-    if (root.getChildren() == null) // Based on the second test in VfdtSanityChecks.java
+    if (nbExamplesProcessed == 0)
       return 0.5;
-//    if (leaf.getNbZeroes() == 0 && leaf.getNbOnes() == 0)
+    VfdtNode leaf = root.sortExample(example);
+//    if (root.getChildren() == null) // Based on the second test in VfdtSanityChecks.java
 //      return 0.5;
     // TODO is this correct?
     //  (is conform with: https://datascience.stackexchange.com/questions/11171/decision-tree-how-to-understand-or-calculate-the-probability-confidence-of-pred)
@@ -369,6 +370,16 @@ public class Vfdt extends IncrementalLearner<Integer> {
     return root.getVisualization("");
   }
 
+  /**
+   * Info to print when testing. This is mainly for debug purpose
+   *
+   * <p>You can override this method in VFDT or LogisticRegression to print the information you
+   * wish.
+   */
+  @Override
+  public String getInfo() {
+    return "Nb. of splits: " + this.nbOfSplits;
+  }
 
   /**
    * This runs your code to generate the required output for the assignment.

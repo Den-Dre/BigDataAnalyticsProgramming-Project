@@ -80,6 +80,7 @@ public class VfdtNode {
 
     /* FILL IN HERE */
     this.children = nodes;
+    this.nijk = null; // Free memory of nijk array
   }
 
   /**
@@ -376,10 +377,6 @@ public class VfdtNode {
   public void setSplitFeature(int f) {
     this.splitFeature = f;
   }
-
-//  public List<Integer> getLeafSplitFeatures() {
-//    return this.leafSplitFeatures;
-//  }
 
   /**
    * Return the visualization of the tree.

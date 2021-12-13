@@ -51,8 +51,7 @@ public class Perceptron extends IncrementalLearner<Double> {
       FILL IN HERE
       Update the parameters given the new data to improve J(weights)
     */
-    double y_jt = thresholdFunction(weightsDotProduct(example));
-    updateWeights(y_jt, example);
+    updateWeights(example);
   }
 
 
@@ -61,10 +60,10 @@ public class Perceptron extends IncrementalLearner<Double> {
    * standard perceptron.
    *
    * @param input: The instance to pass in the threshold function
-   * @return input > ? 1 : 0
+   * @return input < 0 ? -1 : 1
    */
   private double thresholdFunction(double input) {
-    return input > 0.0 ? 1.0 : 0.0;
+    return input < 0.0 ? -1.0 : 1.0;
   }
 
   /**
@@ -77,7 +76,7 @@ public class Perceptron extends IncrementalLearner<Double> {
    */
   private double weightsDotProduct(Example<Double> example) {
     double sum = weights[0];
-    for (int i = 1; i < example.attributeValues.length; i++) {
+    for (int i = 0; i < example.attributeValues.length; i++) {
       sum += example.attributeValues[i] * weights[i+1];
     }
     return sum;
@@ -87,14 +86,16 @@ public class Perceptron extends IncrementalLearner<Double> {
    * Update the weights of this Perceptron
    * using the delta rule
    */
-  private void updateWeights(double outputValue, Example<Double> example) {
+  private void updateWeights(Example<Double> example) {
     // NOTE we offset the attributeValues indexes by 1, as attributeValues[0] is assumed to be 1
     // s.t. weights[0] * attributeValues[0] = weights[0] = b to account for the bias
-    weights[0] += learningRate * (example.classValue - outputValue);
-    for (int i = 1; i < weights.length; i++) {
+    double predicted  = weightsDotProduct(example);
+    double update = example.classValue*2-1 - thresholdFunction(predicted);
+    weights[0] += learningRate * update;
+    for (int i = 0; i < example.attributeValues.length; i++) {
       // We implicitly apply Stochastic Gradient Descent as we're only using one example
       // to update the weights, instead of using all examples in our data set.
-      weights[i] += learningRate * (example.classValue - outputValue) * example.attributeValues[i-1];
+      weights[i+1] += learningRate * update * example.attributeValues[i];
     }
   }
 
@@ -114,8 +115,8 @@ public class Perceptron extends IncrementalLearner<Double> {
   public double makePrediction(Double[] example) {
     double pr = weights[0];
     /* FILL IN HERE */
-    for (int i = 1; i < weights.length; i++) {
-      pr += weights[i] * example[i-1];
+    for (int i = 0; i < example.length; i++) {
+      pr += weights[i+1] * example[i];
     }
     return pr;
   }

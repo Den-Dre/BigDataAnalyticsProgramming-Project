@@ -93,6 +93,7 @@ pc_small: $(class_d)/Perceptron.class
 	rm -f small.pc.acc ;
 	rm -f small.pc.prob;
 	time java -cp .:$(class_d) Perceptron $(ETA) $(SMALL_DATA_PC) small 1000 -writeOutAllPredictions
+# 0.000000001 ../dataSubset/pc/ small 1000 -writeOutAllPredictions
 
 pc_clean: $(class_d)/Perceptron.class
 	@echo "training perceptron on all data"

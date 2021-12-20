@@ -4,6 +4,7 @@
  */
 
 import java.io.*;
+import java.util.Random;
 import java.util.Scanner;
 
 /** This class is a stub for incrementally building a Perceptron model. */
@@ -24,7 +25,16 @@ public class Perceptron extends IncrementalLearner<Double> {
   public Perceptron(int numFeatures, double learningRate) {
     this.nbExamplesProcessed = 0;
     this.learningRate = learningRate;
+    // Initialise weights to random small values
+    // Make sure to sample evenly from negative and positive values
+    // Don't initialise these to 0 as this will make the weights independent of eta!
+    // source: https://datascience.stackexchange.com/questions/26134/initialize-perceptron-weights-with-zero
     this.weights = new double[numFeatures+1]; // Take bias term b into account
+    final double stdDev = 0.01;
+    Random r = new Random();
+    // Initialise bias to 0, weights to normally distributed numbers with standard deviation of `stdDev` and mean 0
+    for (int i = 1; i < weights.length; i++)
+      weights[i] = r.nextGaussian() * stdDev;
 
     /*
       FILL IN HERE

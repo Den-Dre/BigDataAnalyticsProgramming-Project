@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2021.3.14)  18 DEC 2021 15:06
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2021.3.14)  18 DEC 2021 17:55
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -255,11 +255,11 @@ File: ../plots/vfdt_clean.png Graphic file (type png)
 <use ../plots/vfdt_clean.png>
 Package pdftex.def Info: ../plots/vfdt_clean.png  used on input line 42.
 (pdftex.def)             Requested size: 312.00119pt x 234.01236pt.
-<../plots/pc_noise.png, id=12, 2775.168pt x 1440.3411pt>
+<../plots/pc_noise.png, id=12, 462.528pt x 346.896pt>
 File: ../plots/pc_noise.png Graphic file (type png)
 <use ../plots/pc_noise.png>
 Package pdftex.def Info: ../plots/pc_noise.png  used on input line 48.
-(pdftex.def)             Requested size: 312.00119pt x 161.91049pt.
+(pdftex.def)             Requested size: 312.00119pt x 234.01236pt.
 <../plots/vfdt_noise.png, id=13, 462.528pt x 346.896pt>
 File: ../plots/vfdt_noise.png Graphic file (type png)
 <use ../plots/vfdt_noise.png>
@@ -267,63 +267,70 @@ Package pdftex.def Info: ../plots/vfdt_noise.png  used on input line 54.
 (pdftex.def)             Requested size: 312.00119pt x 234.01236pt.
  [2] [3 <../plots/pc_clean.png> <../plots/vfdt_clean.png>] [4 <../plots/pc_nois
 e.png> <../plots/vfdt_noise.png>]
-<./img/pc_etas.png, id=32, 1184.5053pt x 346.896pt>
+<./img/pc_etas.png, id=33, 1213.4133pt x 377.9721pt>
 File: ./img/pc_etas.png Graphic file (type png)
 <use ./img/pc_etas.png>
-Package pdftex.def Info: ./img/pc_etas.png  used on input line 74.
-(pdftex.def)             Requested size: 624.00238pt x 182.74242pt.
-<./img/vfdt_deltas.png, id=33, 462.528pt x 346.896pt>
-File: ./img/vfdt_deltas.png Graphic file (type png)
-<use ./img/vfdt_deltas.png>
-Package pdftex.def Info: ./img/vfdt_deltas.png  used on input line 80.
+Package pdftex.def Info: ./img/pc_etas.png  used on input line 78.
+(pdftex.def)             Requested size: 624.00238pt x 194.37808pt.
+<./img/vfdt_delta.png, id=34, 462.528pt x 346.896pt>
+File: ./img/vfdt_delta.png Graphic file (type png)
+<use ./img/vfdt_delta.png>
+Package pdftex.def Info: ./img/vfdt_delta.png  used on input line 84.
 (pdftex.def)             Requested size: 312.00119pt x 234.01236pt.
-<./img/vfdt_delta_zoom.png, id=34, 462.528pt x 346.896pt>
+<./img/vfdt_delta_zoom2.png, id=35, 462.528pt x 346.896pt>
+File: ./img/vfdt_delta_zoom2.png Graphic file (type png)
+<use ./img/vfdt_delta_zoom2.png>
+Package pdftex.def Info: ./img/vfdt_delta_zoom2.png  used on input line 90.
+(pdftex.def)             Requested size: 312.00119pt x 234.01236pt.
+<./img/vfdt_delta_zoom.png, id=36, 462.528pt x 346.896pt>
 File: ./img/vfdt_delta_zoom.png Graphic file (type png)
 <use ./img/vfdt_delta_zoom.png>
-Package pdftex.def Info: ./img/vfdt_delta_zoom.png  used on input line 86.
+Package pdftex.def Info: ./img/vfdt_delta_zoom.png  used on input line 96.
 (pdftex.def)             Requested size: 312.00119pt x 234.01236pt.
-<./img/vfdt_taus.png, id=35, 462.528pt x 346.896pt>
+<./img/vfdt_taus.png, id=37, 462.528pt x 346.896pt>
 File: ./img/vfdt_taus.png Graphic file (type png)
 <use ./img/vfdt_taus.png>
-Package pdftex.def Info: ./img/vfdt_taus.png  used on input line 92.
+Package pdftex.def Info: ./img/vfdt_taus.png  used on input line 102.
 (pdftex.def)             Requested size: 312.00119pt x 234.01236pt.
-<./img/vfdt_nmin.png, id=36, 462.528pt x 346.896pt>
+<./img/vfdt_nmin.png, id=38, 462.528pt x 346.896pt>
 File: ./img/vfdt_nmin.png Graphic file (type png)
 <use ./img/vfdt_nmin.png>
-Package pdftex.def Info: ./img/vfdt_nmin.png  used on input line 98.
+Package pdftex.def Info: ./img/vfdt_nmin.png  used on input line 108.
 (pdftex.def)             Requested size: 312.00119pt x 234.01236pt.
-<../code/experiments/vfdt/plots/vfdt_nmin_zoom.png, id=37, 462.528pt x 346.896p
+<../code/experiments/vfdt/plots/vfdt_nmin_zoom.png, id=39, 462.528pt x 346.896p
 t>
 File: ../code/experiments/vfdt/plots/vfdt_nmin_zoom.png Graphic file (type png)
 
 <use ../code/experiments/vfdt/plots/vfdt_nmin_zoom.png>
 Package pdftex.def Info: ../code/experiments/vfdt/plots/vfdt_nmin_zoom.png  use
-d on input line 104.
+d on input line 114.
 (pdftex.def)             Requested size: 312.00119pt x 234.01236pt.
- [5 <./img/pc_etas.png>] [6 <./img/vfdt_deltas.png> <./img/vfdt_delta_zoom.png>
-] [7 <./img/vfdt_taus.png> <./img/vfdt_nmin.png>] [8 <../code/experiments/vfdt/
-plots/vfdt_nmin_zoom.png>] (./report.aux) ) 
+ [5] [6 <./img/pc_etas.png> <./img/vfdt_delta.png>] [7 <./img/vfdt_delta_zoom2.
+png> <./img/vfdt_delta_zoom.png>] [8 <./img/vfdt_taus.png> <./img/vfdt_nmin.png
+>] [9 <../code/experiments/vfdt/plots/vfdt_nmin_zoom.png>]
+(./report.aux) ) 
 Here is how much of TeX's memory you used:
- 5192 strings out of 481239
- 77221 string characters out of 5920377
- 324230 words of memory out of 5000000
- 20389 multiletter control sequences out of 15000+600000
- 543744 words of font info for 59 fonts, out of 8000000 for 9000
+ 5201 strings out of 481239
+ 77428 string characters out of 5920377
+ 322230 words of memory out of 5000000
+ 20396 multiletter control sequences out of 15000+600000
+ 544520 words of font info for 60 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,8n,96p,1525b,355s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/share/texmf/fonts/enc/dvips/cm
--super/cm-super-t1.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.p
-fb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></u
-sr/share/texmf/fonts/type1/public/cm-super/sfbx1728.pfb></usr/share/texmf/fonts
-/type1/public/cm-super/sfrm1200.pfb></usr/share/texmf/fonts/type1/public/cm-sup
-er/sfrm1440.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm2074.pfb></us
-r/share/texmf/fonts/type1/public/cm-super/sftt1200.pfb>
-Output written on report.pdf (8 pages, 1641424 bytes).
+ 55i,8n,96p,1086b,355s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc}</us
+r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/shar
+e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texli
+ve/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texm
+f-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf/fonts/type1/
+public/cm-super/sfbx1200.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx
+1728.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1200.pfb></usr/share
+/texmf/fonts/type1/public/cm-super/sfrm1440.pfb></usr/share/texmf/fonts/type1/p
+ublic/cm-super/sfrm2074.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1
+200.pfb>
+Output written on report.pdf (9 pages, 679936 bytes).
 PDF statistics:
- 89 PDF objects out of 1000 (max. 8388607)
- 49 compressed objects within 1 object stream
+ 98 PDF objects out of 1000 (max. 8388607)
+ 54 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 51 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 56 words of extra memory for PDF output out of 10000 (max. 10000000)
 

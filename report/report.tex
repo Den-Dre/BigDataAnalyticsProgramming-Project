@@ -24,7 +24,7 @@
 
 \newpage
 
-\section{Bugs}
+\section{Bugs}\todo
 \section{Learning Curves}
 The learning curves for the Perceptron (PC) and Very Fast Decision Tree (VFDT) run on the \texttt{clean} datasets are shown in figures \ref{fig:pc_clean} and \ref{fig:vfdt_clean} respectively. What's remarkable is that the PC achieves almost perfect accuracy while the VFDT only achieves an accuracy of approximately $75\%$ on the clean data. The accuracy of the PC shows, however, much more oscillation whereas the VFDT's accuracy follows a more stable course. After around $100.000.000$ examples have been trained with, we can clearly see the change of model used to generate the data in both graphs: both the PC's and VFDT's accuracy take a steep drop to $55\%$ accuracy. The PC quickly recovers back up to its original state, wheras the VFDT doesn't reach the same accuracy it had before: this could be due to the VFDT being overfit to the previously used model to generate the data, whereas the PC's weights can be changed entirely as needed.	
 
@@ -64,9 +64,13 @@ To study the effect of different parameters present in the programs, we pose the
 	\item What's the effect of varying $n_{min}$ (how often split function is recalculated) in the VFDT implementation?
 \end{enumerate}
 
-The learning curves for the PC with varying values for $\eta$ on the \texttt{clean} data set are shown in figure \ref{fig:pc_etas}. We notice that smaller learning learning rates result in  less oscillating accuracies throughout the learning process. 
+The learning curves for the PC with varying values for $\eta$ on the \texttt{clean} data set are shown in figure \ref{fig:pc_etas}. We notice that (somewhat counter intuitively) larger learning rates perform better. This could be because larger values for $\eta$ will cause the effect of noisy data points on the weights to be filtered out quicklier.
 
-For studying the parameters of the VFDT, we use the \texttt{clean} dataset. In figure \ref{fig:vfdt_deltas} we can see that varying $\delta$ affects the speed at which accuracy is gained. In the initial learning phase $\delta := \sctf{9}$ seems to gain accuracy the quickest, while after the concept drift $\delta := \sctf{7}$ is more succesful (see fig. \ref{fig:vfdt_delta_zoom}). In general, small values for $\delta$ lead to higher accuracy: this is what we expect, as increasing $\delta$ increases the Hoeffding bound and thus will wait for a higher difference between the two highest split evaluation values before splitting. From figure \ref{fig:vfdt_taus} we can deduce that smaller values of $\tau$ increase the learning efficiency: this makes sense as the algorithm spends less time on deciding between minor differences in split evaluations and will be able to split sooner on these cases. We also note that for larger values of $\tau$, the experiments didn't finish due to excessive memory usage, as the algorithm will then split more often and thus consume more memory as $\tau$ increases. Finally, increasing $n_{min}$ implies the VFDT will re-compute the split evaluation function less frequently, which could increase the computation times, but should decrease the rate at which is learned, as valid splits are discovered with a delay. These assumptions are confirmed by figure \ref{fig:vfdt_nmins}, of which an enlarged view can be seen in figure \ref{fig:vfdt_nmins_zoom}.
+For studying the parameters of the VFDT, we use the \texttt{clean} dataset. In figure \ref{fig:vfdt_deltas} we can see that varying $\delta$ affects the speed at which accuracy is gained: in the first part of the learning curve, larger values for $\delta$ lead to faster gains in accuracy. This is what we expect, as increasing delta implies a less strict Hoeffding bound, which will cause the VFDT to make splits quicklier (see fig. \ref{fig:vfdt_delta_zoom}). After the concept drift, $\delta == \sctf{7}$ increases the accuracy the quickliest: this value possibly hits the right middleground between splitting as quick as possible (larger $\delta$) and not overfitting too much too quickly on the data (smaller $\delta$); cfr. figure \ref{fig:vfdt_delta_zoom2}.
+
+From figure \ref{fig:vfdt_taus} we can deduce that smaller values of $\tau$ increase the learning efficiency: this makes sense as the algorithm spends less time on deciding between minor differences in split evaluations and will be able to split sooner on these cases. We also note that for larger values of $\tau$, the experiments didn't finish due to excessive memory usage, as the algorithm will then split more often and thus consumes more memory as $\tau$ increases.
+
+ Finally, increasing $n_{min}$ implies the VFDT will re-compute the split evaluation function less frequently, which decreases computation times (as calculating the split evaluation is the most costly part of the algorithm), but should also decrease the rate at which is learned, as eligible splits are only discovered after a delay of at most $n_{min}$ examples. The latter is confirmed by figure \ref{fig:vfdt_nmins}, of which an enlarged view can be seen in figure \ref{fig:vfdt_nmins_zoom}.
 
 \begin{figure}
 	
@@ -77,15 +81,21 @@ For studying the parameters of the VFDT, we use the \texttt{clean} dataset. In f
 \end{figure}
 \begin{figure}
 	\centering
-	\includegraphics[width=.8\linewidth]{./img/vfdt_deltas.png}
+	\includegraphics[width=.8\linewidth]{./img/vfdt_delta.png}
 	\caption{Effect of varying $\delta$}
 	\label{fig:vfdt_deltas}	
 \end{figure}
 \begin{figure}
 	\centering
-	\includegraphics[width=.8\linewidth]{./img/vfdt_delta_zoom.png}
-	\caption{Enlarged view of figure \ref{fig:vfdt_deltas}}
+	\includegraphics[width=.8\linewidth]{./img/vfdt_delta_zoom2.png}
+	\caption{Enlarged view of figure \ref{fig:vfdt_deltas} (before concept drift)}
 	\label{fig:vfdt_delta_zoom}	
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[width=.8\linewidth]{./img/vfdt_delta_zoom.png}
+	\caption{Enlarged view of figure \ref{fig:vfdt_deltas} (after concept drift)}
+	\label{fig:vfdt_delta_zoom2}	
 \end{figure}
 \begin{figure}
 	\centering

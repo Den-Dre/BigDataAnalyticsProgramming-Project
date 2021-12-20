@@ -30,11 +30,6 @@ public class Perceptron extends IncrementalLearner<Double> {
       FILL IN HERE
       You will need other data structures, initialize them here
     */
-    // Weights are initialized to all zeros
-
-    // TODO add bias: done
-    // TODO Input van -1 en 1 fixen: already done?
-    // TODO Use block based loop to increase efficiency?
   }
 
   /**
@@ -90,6 +85,7 @@ public class Perceptron extends IncrementalLearner<Double> {
     // NOTE we offset the attributeValues indexes by 1, as attributeValues[0] is assumed to be 1
     // s.t. weights[0] * attributeValues[0] = weights[0] = b to account for the bias
     double predicted  = weightsDotProduct(example);
+    // map input of 0 and 1 to -1 and 1 respectively:
     double update = example.classValue*2-1 - thresholdFunction(predicted);
     weights[0] += learningRate * update;
     for (int i = 0; i < example.attributeValues.length; i++) {
@@ -119,6 +115,17 @@ public class Perceptron extends IncrementalLearner<Double> {
       pr += weights[i+1] * example[i];
     }
     return pr;
+  }
+
+  /**
+   * Info to print when testing. This is mainly for debug purpose
+   *
+   * <p>You can override this method in VFDT or LogisticRegression to print the information you
+   * wish.
+   */
+  @Override
+  public String getInfo() {
+    return "weights: " + weights[0] + " " + weights[1] + " " +  weights[2];
   }
 
   /**

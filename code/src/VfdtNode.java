@@ -19,12 +19,7 @@ public class VfdtNode {
 
   private int[][][] nijk; /* instance counts (see papert ) */
 
-  // NOT SURE IF THIS IS SUPPOSED TO BE ADDED IN THIS WAY
-  // I'VE ADDED THIS S.T. THE EXISTING CODE DIDN'T GIVE ANY MORE ERRORS
-  // AS IT DIDN'T RECOGNISE THE FOLLOWING VARIABLE
   private int nbSplits;
-
-  /* FILL IN HERE */
 
   private final int[] nbFeatureValues;
 
@@ -48,11 +43,6 @@ public class VfdtNode {
     this.nbFeatureValues = nbFeatureValues;
     this.children = null;
     this.nijk = new int[nbFeatureValues.length][][];
-
-    // this.nijk = new int[possibleSplitFeatures.length][][];
-    // Only keep counts for attributes still present in possibleSplitFeatures
-    // We keep the array of size `nbFeatureValues` s.t. its indexes can still be used as feature values indexes
-    // => this idea is not possible to implement due to the static type of the informationGain method
 
     for (int feature : possibleSplitFeatures) {
         this.nijk[feature] = new int[nbFeatureValues[feature]][2];
@@ -78,9 +68,8 @@ public class VfdtNode {
     this.nbSplits++;
     this.splitFeature = splitFeature;
 
-    /* FILL IN HERE */
     this.children = nodes;
-    this.nijk = null; // Free memory of nijk array
+    this.nijk = null; // Free memory of nijk array (counts no longer needed from this point on)
   }
 
   /**
@@ -91,7 +80,6 @@ public class VfdtNode {
    * @param example is the test attributeValues to sort.
    */
   public VfdtNode sortExample(Integer[] example) {
-    /* FILL IN HERE */
     VfdtNode nextNode = this;
     while (nextNode.children != null)
       nextNode = nextNode.children[example[nextNode.getSplitFeature()]];
@@ -103,7 +91,7 @@ public class VfdtNode {
     VfdtNode[] children = new VfdtNode[nbFeatureValues[X_a]];
 
     // This leaf can no longer split on feature X_a
-    // No need to clone as `toArray` returns a new array object (?)
+    // No need to clone as `toArray` returns a new array object
     int[] newPossibleSplitFeatures = Arrays.stream(possibleSplitFeatures).filter(f -> f != X_a).toArray();
 
     // Create the children
@@ -139,7 +127,6 @@ public class VfdtNode {
   public static double informationGain(int featureId, int[][][] nijk) {
     double ig;
 
-    /* FILL IN HERE */
     double S, Si, zeroes, ones;
     double[] entropyS;
 
@@ -159,15 +146,13 @@ public class VfdtNode {
     return ig;
   }
 
-  // Functions correctly
   private static double[] classEntropy(int[][][] nijk) {
     // In our case, y is binary so can only be 1 or 0
     int nbOnes = 0;   // nb. of instances classified as 1
     int nbZeroes = 0; // nb. of instances classified as 0
 
-    // TODO can this be done more efficiently?
     // We also hold count of the nb of ones and zeros in non static fields,
-    // but the information gain method header was given to be static...
+    // but the information gain method header is required to be static so this approach is infeasible.
     // More efficient: calculate the number of seen ones and zeros based on the
     // first non-null entry in nijk[][]: this feature contains a one or zero for
     // every example that has been processed by this leaf.
@@ -189,7 +174,6 @@ public class VfdtNode {
     return new double[] {- (p0 * Math.log(p0) / Math.log(2) + p1 * Math.log(p1) / Math.log(2)), S};
   }
 
-  // Functions correctly
   private static double classEntropy(double Si, double ones, double zeroes) {
     // Calculate Class entropy for values of feature i
     if (Si == 0.0)
@@ -358,22 +342,47 @@ public class VfdtNode {
     return children;
   }
 
+  /**
+   * Set the identifier of this node, used to write this VFDT to a file
+   *
+   * @param id: the identifier to be set for this node
+   */
   public void setIdentifier(int id) {
     this.identifier = id;
   }
 
+  /**
+   * Get the identifier of this node, used to write this VFDT to a file
+   *
+   * @return id: the identifier of this node
+   */
   public int getIdentifier() {
     return this.identifier;
   }
 
+  /**
+   * Get the ids of the children of this node, used to write them to a file
+   *
+   * @return ids: the ids of the children of this node
+   */
   public int[] getChildrenIds() {
     return childrenIds;
   }
 
+  /**
+   * Set the ids for the children of this node, used to write this VFDT to a file
+   *
+   * @param ids: the ids to be set for this node's children
+   */
   public void setChildrenIds(int[] ids) {
     this.childrenIds = ids;
   }
 
+  /**
+   * Set the id of the feature this node splits on
+   *
+   * @param f: the feature to be set as split feature
+   */
   public void setSplitFeature(int f) {
     this.splitFeature = f;
   }

@@ -12,7 +12,7 @@ public class Perceptron extends IncrementalLearner<Double> {
 
   private final double learningRate;
   private double[] weights;
-
+  private final boolean randomiseWeights = false;
 
   /**
    * Perceptron constructor.
@@ -30,11 +30,13 @@ public class Perceptron extends IncrementalLearner<Double> {
     // Don't initialise these to 0 as this will make the weights independent of eta!
     // source: https://datascience.stackexchange.com/questions/26134/initialize-perceptron-weights-with-zero
     this.weights = new double[numFeatures+1]; // Take bias term b into account
-    final double stdDev = 0.001;
-    Random r = new Random();
-    // Initialise bias to 0, weights to normally distributed numbers with standard deviation of `stdDev` and mean 0
-    for (int i = 1; i < this.weights.length; i++) {
-      this.weights[i] = r.nextGaussian() * stdDev;
+    if (randomiseWeights) {
+      final double stdDev = 0.001;
+      Random r = new Random();
+      // Initialise bias to 0, weights to normally distributed numbers with standard deviation of `stdDev` and mean 0
+      for (int i = 1; i < this.weights.length; i++) {
+        this.weights[i] = r.nextGaussian() * stdDev;
+      }
     }
 
     /*

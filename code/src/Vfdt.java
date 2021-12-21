@@ -42,10 +42,6 @@ public class Vfdt extends IncrementalLearner<Integer> {
     int[] possibleFeatures = new int[nbFeatureValues.length];
     for (int i = 0; i < nbFeatureValues.length; i++) possibleFeatures[i] = i;
     root = new VfdtNode(nbFeatureValues, possibleFeatures);
-
-    /*
-      FILL IN HERE
-    */
   }
 
   /**
@@ -59,9 +55,6 @@ public class Vfdt extends IncrementalLearner<Integer> {
   public void update(Example<Integer> example) {
     super.update(example);
 
-    /*
-      FILL IN HERE
-    */
     VfdtNode leaf = root.sortExample(example.attributeValues);
     for (int feature : leaf.getPossibleSplitFeatures()) {
       // For each xij in x such that Xi ∈ Xl
@@ -121,6 +114,12 @@ public class Vfdt extends IncrementalLearner<Integer> {
     }
   }
 
+  /**
+   * Calculate the Hoeffding bound of a leaf which has processed {@code n} examples
+   *
+   * @param n: the number of examples processed by the leaf the bound is calculated for
+   * @return bound: the Hoeffding bound at a leaf which has processed {@code n} examples
+   */
   private double epsilon(double n) {
     // R := log2(#classes) = log2(2) = 1
     // Use number of instances processed in this leaf only, rather than in entire VFDT!
@@ -138,17 +137,9 @@ public class Vfdt extends IncrementalLearner<Integer> {
    */
   @Override
   public double makePrediction(Integer[] example) {
-    /*
-      FILL IN HERE
-    */
     if (nbExamplesProcessed == 0)
       return 0.5;
     VfdtNode leaf = root.sortExample(example);
-    // TODO is this correct?
-    //  (is conform with: https://datascience.stackexchange.com/questions/11171/decision-tree-how-to-understand-or-calculate-the-probability-confidence-of-pred)
-    //  Should be, as the incrementalLearner class asks for the prediction and then rounds this to 1 iff. the prediction
-    //  value is larger than a certain threshold (0.5). This is equivalent to the paper saying: label the leaf with the
-    //  majority class.'
     return (double) leaf.getNbOnes() / ((double) leaf.getNbOnes() + leaf.getNbZeroes());
   }
 
@@ -164,9 +155,6 @@ public class Vfdt extends IncrementalLearner<Integer> {
    */
   @Override
   public void writeModel(String path) throws IOException {
-    /*
-      FILL IN HERE
-    */
     StringBuilder outputBuilder = new StringBuilder();
     outputBuilder.append(this.nbOfNodes).append("\n");
     List<List<VfdtNode>> nodes = root.getNodes();
@@ -234,7 +222,6 @@ public class Vfdt extends IncrementalLearner<Integer> {
   public void readModel(String path, int nbExamplesProcessed) throws IOException {
     super.readModel(path, nbExamplesProcessed);
 
-    /* FILL IN HERE */
     this.nbExamplesProcessed = nbExamplesProcessed;
 
     System.out.println(System.getProperty("user.dir"));
@@ -288,7 +275,6 @@ public class Vfdt extends IncrementalLearner<Integer> {
       i++;
     }
 
-    // Based on: https://stackoverflow.com/a/23945015/15482295
     VfdtNode leaf = new VfdtNode(this.nbFeatureValues, possibleSplitFeatures);
     leaf.setIdentifier(Integer.parseInt(split[0]));
 

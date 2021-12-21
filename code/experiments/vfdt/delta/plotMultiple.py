@@ -12,7 +12,9 @@ for file_name in file_names:
 plt.xlabel('Number of examples trained with')
 plt.ylabel('Accuracy')
 plt.title(r"VFDT's accuracy in function of $\delta$")
-leg = plt.legend(loc='lower right')
+order = [0, 2, 1, 4, 3]
+handles, labels = plt.gca().get_legend_handles_labels()
+leg = plt.legend(handles=[handles[i] for i in order], labels=[labels[i] for i in order], loc='lower right')
 for l_obj in leg.legendHandles:
     l_obj.set_linewidth(2.0)
 plt.show()

@@ -30,11 +30,12 @@ public class Perceptron extends IncrementalLearner<Double> {
     // Don't initialise these to 0 as this will make the weights independent of eta!
     // source: https://datascience.stackexchange.com/questions/26134/initialize-perceptron-weights-with-zero
     this.weights = new double[numFeatures+1]; // Take bias term b into account
-    final double stdDev = 0.01;
+    final double stdDev = 0.001;
     Random r = new Random();
     // Initialise bias to 0, weights to normally distributed numbers with standard deviation of `stdDev` and mean 0
-    for (int i = 1; i < weights.length; i++)
-      weights[i] = r.nextGaussian() * stdDev;
+    for (int i = 1; i < this.weights.length; i++) {
+      this.weights[i] = r.nextGaussian() * stdDev;
+    }
 
     /*
       FILL IN HERE
@@ -96,12 +97,12 @@ public class Perceptron extends IncrementalLearner<Double> {
     // s.t. weights[0] * attributeValues[0] = weights[0] = b to account for the bias
     double predicted  = weightsDotProduct(example);
     // map input of 0 and 1 to -1 and 1 respectively:
-    double update = example.classValue*2-1 - thresholdFunction(predicted);
-    weights[0] += learningRate * update;
+    double update = learningRate * (example.classValue*2-1 - thresholdFunction(predicted));
+    weights[0] += update;
     for (int i = 0; i < example.attributeValues.length; i++) {
       // We implicitly apply Stochastic Gradient Descent as we're only using one example
       // to update the weights, instead of using all examples in our data set.
-      weights[i+1] += learningRate * update * example.attributeValues[i];
+      weights[i+1] += update * example.attributeValues[i];
     }
   }
 

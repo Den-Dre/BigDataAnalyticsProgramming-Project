@@ -38,11 +38,6 @@ public class Perceptron extends IncrementalLearner<Double> {
         this.weights[i] = r.nextGaussian() * stdDev;
       }
     }
-
-    /*
-      FILL IN HERE
-      You will need other data structures, initialize them here
-    */
   }
 
   /**
@@ -55,10 +50,6 @@ public class Perceptron extends IncrementalLearner<Double> {
   @Override
   public void update(Example<Double> example) {
     super.update(example);
-    /*
-      FILL IN HERE
-      Update the parameters given the new data to improve J(weights)
-    */
     updateWeights(example);
   }
 
@@ -123,7 +114,6 @@ public class Perceptron extends IncrementalLearner<Double> {
   @Override
   public double makePrediction(Double[] example) {
     double pr = weights[0];
-    /* FILL IN HERE */
     for (int i = 0; i < example.length; i++) {
       pr += weights[i+1] * example[i];
     }
@@ -154,7 +144,6 @@ public class Perceptron extends IncrementalLearner<Double> {
    */
   @Override
   public void writeModel(String path) throws IOException {
-    /* FILL IN HERE */
     StringBuilder outputBuilder = new StringBuilder();
     for (double weight : weights) {
       outputBuilder.append(weight).append(" ");
@@ -181,7 +170,6 @@ public class Perceptron extends IncrementalLearner<Double> {
   public void readModel(String path, int nbExamplesProcessed) throws IOException {
     super.readModel(path, nbExamplesProcessed);
 
-    /* FILL IN HERE */
     System.out.println(System.getProperty("user.dir"));
     Scanner scanner;
     path = System.getProperty("user.dir") + "/" + path;
